@@ -8,6 +8,7 @@ def handle_connection(conn: socket.socket, addr):
         data = conn.recv(1024)
         if not data:
             print(str(addr), "closed the connection")
+            break
         try:
             resp = str(addr) + " sends (reversed): " + data.decode().strip()[::-1] + "\n"
             print(resp, end="")

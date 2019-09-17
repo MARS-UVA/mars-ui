@@ -1,5 +1,6 @@
 import socket
 import threading
+import traceback
 
 
 def handle_connection(conn: socket.socket, addr):
@@ -7,9 +8,13 @@ def handle_connection(conn: socket.socket, addr):
         data = conn.recv(1024)
         if not data:
             print(str(addr), "closed the connection")
-        resp = str(addr) + " sends (reversed): " + data.decode().strip()[::-1] + "\n"
-        print(resp, end="")
-        conn.sendall(bytes(resp, "utf-8"))
+        try:
+            resp = str(addr) + " sends (reversed): " + data.decode().strip()[::-1] + "\n"
+            print(resp, end="")
+            conn.sendall(bytes(resp, "utf-8"))
+        except:
+            print("Failed to send response")
+            traceback.print_exc()
 
 
 HOST = ''                # Symbolic name meaning all available interfaces

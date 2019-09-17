@@ -6,8 +6,9 @@ def handle_connection(conn: socket.socket, addr):
     while True:
         data = conn.recv(1024)
         if not data:
-            break
-        resp = "You send (reversed): " + data.decode().strip()[::-1] + "\n"
+            print(str(addr), "closed the connection")
+        resp = str(addr) + " sends (reversed): " + data.decode().strip()[::-1] + "\n"
+        print(resp, end="")
         conn.sendall(bytes(resp, "utf-8"))
 
 

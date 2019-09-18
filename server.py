@@ -24,8 +24,8 @@ def handle_connection(conn: socket.socket, addr):
                     h2 = temp[i + 1]
                     if h1 == 0xff and h2 == 0xff and i <= 7:
                         slc = temp[i:i+7]
-                        conn.sendall(bytes("You send " + str(list(slc)) + "\r\n" + "The checksum is " +
-                                           "correct" if checksum(slc) else "incorrect" + "\n", "utf-8"))
+                        conn.sendall(bytes(("You send " + str(list(slc)) + "\r\n" + "The checksum is ") +
+                                           ("correct" if checksum(slc) else "incorrect") + "\n", "utf-8"))
                         flag = True
                         break
                 temp = bytes()

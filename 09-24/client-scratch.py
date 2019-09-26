@@ -3,7 +3,7 @@ import socket
 import random
 
 seq = [0xff, 0xff, 4, 23, 45, 67, 74, 0]
-seq[-1] = sum(seq[:-1]) % 255
+seq[-1] = sum(seq[:-1]) % 256
 seq *= 10
 HOST = 'localhost'    # The remote host
 PORT = 6666              # The same port as used by the server

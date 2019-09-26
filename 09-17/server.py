@@ -5,7 +5,7 @@ import traceback
 
 def checksum(bs):
     s = sum(bs[0:6])
-    return s % 255 == bs[6]
+    return s % 256 == bs[6]
 
 
 def handle_connection(conn: socket.socket, addr):

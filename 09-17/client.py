@@ -14,7 +14,7 @@ def send4int(a, b, c, d):
     You should get something like Received b'You send [255, 255, 1, 2, 3, 4, 10]\r\nThe checksum is correct'
     """
     seq = [0xff, 0xff, a, b, c, d, 0]
-    checksum = sum(seq[0:6]) % 255
+    checksum = sum(seq[0:6]) % 256
     seq[6] = checksum
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))

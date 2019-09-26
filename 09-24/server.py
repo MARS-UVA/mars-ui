@@ -4,7 +4,7 @@ import traceback
 
 
 def checksum(bs, count):
-    return sum(bs[:-1]) % 255 == bs[-1]
+    return sum(bs[:-1]) % 256 == bs[-1]
 
 
 READ_LEN = 20

@@ -7,3 +7,4 @@ prev = bytes()
 def var_len_proto_recv(data: bytes):
     global prev
     return []
+

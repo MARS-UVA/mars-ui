@@ -1,4 +1,4 @@
-from serial_proto import var_len_proto_recv, var_len_proto_send
+from _serial_proto import var_len_proto_recv, var_len_proto_send
 from random import randint
 
 
@@ -12,7 +12,7 @@ def gen_var_send_test(data: list):
     return bytes(buffer)
 
 # ---- client test -----------------
-assert var_len_proto_send([1, 2, 3]) == [255, 195, 1, 2, 3, 200]
+assert var_len_proto_send([1, 2, 3]) == bytes([255, 195, 1, 2, 3, 200])
 for i in range(50):
     count = randint(1, 16)
     data = [randint(0, 255) for i in range(count)]
@@ -20,23 +20,25 @@ for i in range(50):
          
 
 # ----- server test
-assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200])) == [1, 2, 3]
+assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200])) == [[1, 2, 3]]
 for i in range(50):
     count = randint(1, 16)
     data = [randint(0, 255) for i in range(count)]
-    assert var_len_proto_recv(bytes(gen_var_send_test(data))) == data
+    assert var_len_proto_recv(gen_var_send_test(data)) == [data]
 
 # --- incomplete data test
 assert var_len_proto_recv(bytes([254])) == []
 assert var_len_proto_recv(bytes([])) == []
 assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 199])) == [] # checksum mismatch
 assert var_len_proto_recv(bytes([255, 195])) == [] # segmented data
-assert var_len_proto_recv(bytes([1, 2, 3, 200])) == [1, 2, 3]
+assert var_len_proto_recv(bytes([1, 2, 3, 200])) == [[1, 2, 3]]
 assert var_len_proto_recv(bytes([255, 195, 2, 2, 3])) == []
-assert var_len_proto_recv(bytes([201])) == [2, 2, 3]
+assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
 assert var_len_proto_recv(bytes([255])) == []
 assert var_len_proto_recv(bytes([195])) == []
 assert var_len_proto_recv(bytes([2])) == []
 assert var_len_proto_recv(bytes([2, 3])) == []
-assert var_len_proto_recv(bytes([201])) == [2, 2, 3]
+assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
 assert var_len_proto_recv(bytes([255, 64, 1, 2, 3, 200])) == [] # count byte mismatch
+
+assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200] * 2)) == [[1, 2, 3]] * 2 # two packages all at once

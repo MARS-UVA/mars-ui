@@ -5,7 +5,7 @@ import serial
 from serial_proto_ethan import var_len_proto_send
 
 if __name__ == "__main__":
-    ser = serial.Serial('COM4', 115200, timeout=1)
+    ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('', 6666))
         s.listen(1)

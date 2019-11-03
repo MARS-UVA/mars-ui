@@ -1,11 +1,13 @@
 import socket
 import traceback
+import time
+import serial
+from serial_proto_ethan import var_len_proto_send
 
 if __name__ == "__main__":
-    HOST = ''                # Symbolic name meaning all available interfaces
-    PORT = 6666              # Arbitrary non-privileged port
+    ser = serial.Serial('COM4', 115200, timeout=1)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+        s.bind(('', 6666))
         s.listen(1)
         try:
             conn, addr = s.accept()
@@ -13,7 +15,8 @@ if __name__ == "__main__":
 
             while True:
                 data = conn.recv(1024)
-                print(data)
+                ser.write(data)
+                time.sleep(0.01)
 
         except KeyboardInterrupt:
             print("Shutting down the socket")

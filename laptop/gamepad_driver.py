@@ -34,10 +34,13 @@ JOY_USEDEADZONE = 0x800
 JOY_RETURNALL = JOY_RETURNX | JOY_RETURNY | JOY_RETURNZ | JOY_RETURNR | JOY_RETURNU | JOY_RETURNV | JOY_RETURNPOV | JOY_RETURNBUTTONS
 
 # This is the mapping for my XBox 360 controller.
-button_names = ['a', 'b', 'x', 'y', 'tl', 'tr', 'back', 'start', 'thumbl', 'thumbr']
+button_names = ['a', 'b', 'x', 'y', 'tl',
+                'tr', 'back', 'start', 'thumbl', 'thumbr']
 povbtn_names = ['dpad_up', 'dpad_right', 'dpad_down', 'dpad_left']
 
 # Define some structures from WinMM that we will use in function calls.
+
+
 class JOYCAPS(ctypes.Structure):
     _fields_ = [
         ('wMid', WORD),
@@ -66,6 +69,7 @@ class JOYCAPS(ctypes.Structure):
         ('szOEMVxD', TCHAR * MAX_JOYSTICKOEMVXDNAME),
     ]
 
+
 class JOYINFO(ctypes.Structure):
     _fields_ = [
         ('wXpos', UINT),
@@ -73,6 +77,7 @@ class JOYINFO(ctypes.Structure):
         ('wZpos', UINT),
         ('wButtons', UINT),
     ]
+
 
 class JOYINFOEX(ctypes.Structure):
     _fields_ = [
@@ -90,6 +95,7 @@ class JOYINFOEX(ctypes.Structure):
         ('dwReserved1', DWORD),
         ('dwReserved2', DWORD),
     ]
+
 
 # Get the number of supported devices (usually 16).
 num_devs = joyGetNumDevs()
@@ -110,23 +116,25 @@ caps = JOYCAPS()
 if joyGetDevCaps(joy_id, ctypes.pointer(caps), ctypes.sizeof(JOYCAPS)) != 0:
     print("Failed to get device capabilities.")
 
-print ("Driver name:", caps.szPname)
+print("Driver name:", caps.szPname)
 
 # Fetch the name from registry.
 key = None
 if len(caps.szRegKey) > 0:
     try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "System\\CurrentControlSet\\Control\\MediaResources\\Joystick\\%s\\CurrentJoystickSettings" % (caps.szRegKey))
-    except :
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             "System\\CurrentControlSet\\Control\\MediaResources\\Joystick\\%s\\CurrentJoystickSettings" % (caps.szRegKey))
+    except:
         key = None
 
 if key:
     oem_name = winreg.QueryValueEx(key, "Joystick%dOEMName" % (joy_id + 1))
     if oem_name:
-        key2 = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "System\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\OEM\\%s" % (oem_name[0]))
+        key2 = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, "System\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\OEM\\%s" % (oem_name[0]))
         if key2:
             oem_name = winreg.QueryValueEx(key2, "OEMName")
-            print ("OEM name:", oem_name[0])
+            print("OEM name:", oem_name[0])
         key2.Close()
 
 # Set the initial button states.
@@ -141,17 +149,14 @@ for b in range(caps.wNumButtons):
 for name in povbtn_names:
     button_states[name] = False
 
-buttons_text = ""
-
 # Initialise the JOYINFOEX structure.
 info = JOYINFOEX()
 info.dwSize = ctypes.sizeof(JOYINFOEX)
 info.dwFlags = JOY_RETURNBUTTONS | JOY_RETURNCENTERED | JOY_RETURNPOV | JOY_RETURNU | JOY_RETURNV | JOY_RETURNX | JOY_RETURNY | JOY_RETURNZ
 p_info = ctypes.pointer(info)
 
+
 def get_gamepad_values():
-    # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
-    
     # Remap the values to float
     x = (info.dwXpos - 32767) / 32768.0
     y = (info.dwYpos - 32767) / 32768.0
@@ -199,7 +204,7 @@ def get_gamepad_values():
     # Display the x, y, trigger values.
     # print ("\r(% .3f % .3f % .3f) (% .3f % .3f % .3f)%s%s" % (x, y, lt, rx, ry, rt, buttons_text, erase),)
 
-    #print info.dwXpos, info.dwYpos, info.dwZpos, info.dwRpos, info.dwUpos, info.dwVpos, info.dwButtons, info.dwButtonNumber, info.dwPOV, info.dwReserved1, info.dwReserved2
+    # print info.dwXpos, info.dwYpos, info.dwZpos, info.dwRpos, info.dwUpos, info.dwVpos, info.dwButtons, info.dwButtonNumber, info.dwPOV, info.dwReserved1, info.dwReserved2
     time.sleep(0.01)
 
     return (x, y, rx, ry, trig, lt, rt, button_states)

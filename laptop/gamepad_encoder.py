@@ -1,7 +1,7 @@
 import socket
 import time
 import math
-from test2 import get_gamepad_values, joyGetPosEx, p_info
+from gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
 
 
 def thresh(a, l_th=0.1, u_th=1):
@@ -14,13 +14,16 @@ def thresh(a, l_th=0.1, u_th=1):
 
 def get_values():
 
+    # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
     if joyGetPosEx(0, p_info) != 0:
         return []
 
     data = get_gamepad_values()
-    rx = data[3]
-    ry = data[2]
     y = data[1]
+    ry = -data[2]
+    rx = -data[3]
+    lt = data[5]
+    rt = data[6]
     button_states = data[7]
 
     y_or_a = 0.0
@@ -29,21 +32,14 @@ def get_values():
     elif button_states['a']:
         y_or_a = -1.0
 
-    lb_or_rb = 0.0
-    if button_states['tl']:
-        lb_or_rb = 1.0
-    elif button_states['tr']:
-        lb_or_rb = -1.0
-
     values = []
     values.append(int(thresh(ry-rx, 0.1) * 100 + 100))
     values.append(int(thresh(ry-rx, 0.1) * 100 + 100))
     values.append(int(thresh(ry+rx, 0.1) * 100 + 100))
     values.append(int(thresh(ry+rx, 0.1) * 100 + 100))
     values.append(int(y_or_a * 100 + 100))
-    values.append(int(lb_or_rb * 100 + 100))
-    values.append(int(thresh(y, 0.1 * 100) + 100))
-
+    values.append(int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100))
+    values.append(int(thresh(y, 0.1) * 100 + 100))
     return values
 
 

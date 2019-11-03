@@ -29,15 +29,18 @@ def get_values():
         lb_or_rb = -1.0
 
     values = []
-    values.append(thresh(ry-rx, 0.1))
-    values.append(thresh(ry-rx, 0.1))
-    values.append(thresh(ry+rx, 0.1))
-    values.append(thresh(ry+rx, 0.1))
-    values.append(y_or_a)
-    values.append(lb_or_rb)
-    values.append(thresh(y, 0.1))
+    values.append(int(((1 + thresh(ry-rx, 0.1)) * 100) + 100))
+    values.append(int(((1 + thresh(ry-rx, 0.1)) * 100) + 100))
+    values.append(int(((1 + thresh(ry+rx, 0.1)) * 100) + 100))
+    values.append(int(((1 + thresh(ry+rx, 0.1)) * 100) + 100))
+    values.append(int(((1 + y_or_a) * 100) + 100))
+    values.append(int(((1 + lb_or_rb) * 100) + 100))
+    values.append(int(((1 + thresh(y, 0.1)) * 100) + 100))
 
     return values
+
+while True:
+    print(get_values)
 
 # Dummy values
 # rx = -0.6

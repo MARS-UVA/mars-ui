@@ -1,4 +1,4 @@
-from _serial_proto import var_len_proto_recv, var_len_proto_send
+from serial_proto import var_len_proto_recv, var_len_proto_send
 from random import randint
 
 
@@ -10,7 +10,7 @@ def gen_var_send_test(data: list):
     buffer.extend(data)
     buffer.append(sum(buffer) % 256)
     return bytes(buffer)
-
+print("starting tests...")
 # ---- client test -----------------
 assert var_len_proto_send([1, 2, 3]) == bytes([255, 195, 1, 2, 3, 200])
 for i in range(50):
@@ -42,3 +42,5 @@ assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
 assert var_len_proto_recv(bytes([255, 64, 1, 2, 3, 200])) == [] # count byte mismatch
 
 assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200] * 2)) == [[1, 2, 3]] * 2 # two packages all at once
+
+print("passed all tests")

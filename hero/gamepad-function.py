@@ -1,9 +1,11 @@
 from test2 import get_gamepad_values, joyGetPosEx, p_info
 
-def thresh (a, th):
+
+def thresh(a, th):
     if abs(a) < th:
         return 0
     return a
+
 
 def get_values():
 
@@ -40,7 +42,7 @@ def get_values():
     return values
 
 while True:
-    print(get_values)
+    print(get_values())
 
 # Dummy values
 # rx = -0.6

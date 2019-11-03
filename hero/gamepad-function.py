@@ -1,11 +1,14 @@
 import socket
 import time
+import math
 from test2 import get_gamepad_values, joyGetPosEx, p_info
 
 
-def thresh(a, th):
-    if abs(a) < th:
+def thresh(a, l_th=0.1, u_th=1):
+    if abs(a) < l_th:
         return 0
+    elif abs(a) > u_th:
+        return -1 if a < 0 else 1
     return a
 
 
@@ -15,8 +18,8 @@ def get_values():
         return []
 
     data = get_gamepad_values()
-    rx = data[2]
-    ry = data[3]
+    rx = data[3]
+    ry = data[2]
     y = data[1]
     button_states = data[7]
 
@@ -33,30 +36,15 @@ def get_values():
         lb_or_rb = -1.0
 
     values = []
-    values.append(int(((1 + thresh(ry-rx, 0.1)) * 100) + 100))
-    values.append(int(((1 + thresh(ry-rx, 0.1)) * 100) + 100))
-    values.append(int(((1 + thresh(ry+rx, 0.1)) * 100) + 100))
-    values.append(int(((1 + thresh(ry+rx, 0.1)) * 100) + 100))
-    values.append(int(((1 + y_or_a) * 100) + 100))
-    values.append(int(((1 + lb_or_rb) * 100) + 100))
-    values.append(int(((1 + thresh(y, 0.1)) * 100) + 100))
+    values.append(int(((thresh(ry-rx, 0.1)) * 100) + 100))
+    values.append(int(((thresh(ry-rx, 0.1)) * 100) + 100))
+    values.append(int(((thresh(ry+rx, 0.1)) * 100) + 100))
+    values.append(int(((thresh(ry+rx, 0.1)) * 100) + 100))
+    values.append(int(((y_or_a) * 100) + 100))
+    values.append(int(((lb_or_rb) * 100) + 100))
+    values.append(int(((thresh(y, 0.1)) * 100) + 100))
 
     return values
-
-while True:
-    print(get_values())
-
-# Dummy values
-# rx = -0.6
-# ry = 0.2
-# y = 0.2
-# button_states = {}
-# button_states['y'] = True
-# button_states['a'] = False
-# button_states['tl'] = True
-# button_states['tr'] = False
-
-# print(get_values())
 
 
 def send_data(data: list):
@@ -73,5 +61,7 @@ PORT = 6666              # The same port as used by the server
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
     while True:
-        s.sendall(send_data(get_values()))
-        time.sleep(10)
+        vals = get_values()
+        print(vals)
+        s.send(send_data(vals))
+        time.sleep(0.01)

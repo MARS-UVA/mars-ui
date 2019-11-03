@@ -1,3 +1,5 @@
+import socket
+import time
 from test2 import get_gamepad_values, joyGetPosEx, p_info
 
 
@@ -55,3 +57,21 @@ while True:
 # button_states['tr'] = False
 
 # print(get_values())
+
+
+def send_data(data: list):
+    count = len(data) | 0b11000000
+
+    buffer = [0xff, count]
+    buffer.extend(data)
+    buffer.append(sum(buffer) % 256)
+    return bytes(buffer)
+
+
+HOST = '172.27.39.176'    # The remote host
+PORT = 6666              # The same port as used by the server
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT))
+    while True:
+        s.sendall(send_data(get_values()))
+        time.sleep(10)

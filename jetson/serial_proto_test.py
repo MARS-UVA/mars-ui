@@ -1,4 +1,4 @@
-from serial_proto import var_len_proto_recv, var_len_proto_send
+from serial_proto_ethan_test import var_len_proto_recv, var_len_proto_send
 from random import randint
 
 
@@ -18,7 +18,6 @@ for i in range(50):
     data = [randint(0, 255) for i in range(count)]
     assert var_len_proto_send(data) == gen_var_send_test(data)
          
-
 # ----- server test
 assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200])) == [[1, 2, 3]]
 for i in range(50):
@@ -40,7 +39,6 @@ assert var_len_proto_recv(bytes([2])) == []
 assert var_len_proto_recv(bytes([2, 3])) == []
 assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
 assert var_len_proto_recv(bytes([255, 64, 1, 2, 3, 200])) == [] # count byte mismatch
-
 assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200] * 2)) == [[1, 2, 3]] * 2 # two packages all at once
 
 print("passed all tests")

@@ -1,6 +1,5 @@
-from serial_proto_ethan_test import var_len_proto_recv, var_len_proto_send
+from serial import list_to_byte, byte_to_list
 from random import randint
-
 
 def gen_var_send_test(data: list):
     count = len(data)
@@ -10,35 +9,45 @@ def gen_var_send_test(data: list):
     buffer.extend(data)
     buffer.append(sum(buffer) % 256)
     return bytes(buffer)
-print("starting tests...")
-# ---- client test -----------------
-assert var_len_proto_send([1, 2, 3]) == bytes([255, 195, 1, 2, 3, 200])
+
+print("Starting Tests...")
+print(" ")
+
+# Client Test
+assert list_to_byte([1, 2, 3]) == bytes([255, 195, 1, 2, 3, 200])
 for i in range(50):
     count = randint(1, 16)
     data = [randint(0, 255) for i in range(count)]
-    assert var_len_proto_send(data) == gen_var_send_test(data)
+    assert list_to_byte(data) == gen_var_send_test(data)
+
+print("Client Test Passed ...")
          
-# ----- server test
-assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200])) == [[1, 2, 3]]
-for i in range(50):
-    count = randint(1, 16)
-    data = [randint(0, 255) for i in range(count)]
-    assert var_len_proto_recv(gen_var_send_test(data)) == [data]
+# # Server test
+# assert byte_to_list(bytes([255, 195, 1, 2, 3, 200])) == [[1, 2, 3]]
+# for i in range(50):
+#     count = randint(1, 16)
+#     data = [randint(0, 255) for i in range(count)]
+#     assert byte_to_list(gen_var_send_test(data)) == [data]
+
+# print("Server Test Passed ...")
 
 # --- incomplete data test
-assert var_len_proto_recv(bytes([254])) == []
-assert var_len_proto_recv(bytes([])) == []
-assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 199])) == [] # checksum mismatch
-assert var_len_proto_recv(bytes([255, 195])) == [] # segmented data
-assert var_len_proto_recv(bytes([1, 2, 3, 200])) == [[1, 2, 3]]
-assert var_len_proto_recv(bytes([255, 195, 2, 2, 3])) == []
-assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
-assert var_len_proto_recv(bytes([255])) == []
-assert var_len_proto_recv(bytes([195])) == []
-assert var_len_proto_recv(bytes([2])) == []
-assert var_len_proto_recv(bytes([2, 3])) == []
-assert var_len_proto_recv(bytes([201])) == [[2, 2, 3]]
-assert var_len_proto_recv(bytes([255, 64, 1, 2, 3, 200])) == [] # count byte mismatch
-assert var_len_proto_recv(bytes([255, 195, 1, 2, 3, 200] * 2)) == [[1, 2, 3]] * 2 # two packages all at once
+assert byte_to_list(bytes([254])) == []
+assert byte_to_list(bytes([])) == []
+assert byte_to_list(bytes([255, 195, 1, 2, 3, 199])) == [] # checksum mismatch
+assert byte_to_list(bytes([255, 195])) == [] # segmented data
+assert byte_to_list(bytes([1, 2, 3, 200])) == [[1, 2, 3]]
+assert byte_to_list(bytes([255, 195, 2, 2, 3])) == []
+assert byte_to_list(bytes([201])) == [[2, 2, 3]]
+assert byte_to_list(bytes([255])) == []
+assert byte_to_list(bytes([195])) == []
+assert byte_to_list(bytes([2])) == []
+assert byte_to_list(bytes([2, 3])) == []
+assert byte_to_list(bytes([201])) == [[2, 2, 3]]
+assert byte_to_list(bytes([255, 64, 1, 2, 3, 200])) == [] # count byte mismatch
+assert byte_to_list(bytes([255, 195, 1, 2, 3, 200] * 2)) == [[1, 2, 3]] * 2 # two packages all at once
 
-print("passed all tests")
+print("Incomplete Data Test Passed ...")
+
+print(" ")
+print("All Tests Passed!")

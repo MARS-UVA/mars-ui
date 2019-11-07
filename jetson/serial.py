@@ -1,19 +1,19 @@
-finalList = []
-currentList = []
-previousList = []
-indexOfNewData = 6
-dataLength = 0
-placeholder = []
+finalList = []      # Final list to be returned with the data
+currentList = []        # List used for more data set
+previousList = []       # List used for comparison 
+indexOfNewData = 6      # Index of the value 255 
+dataLength = 0      # Variable to check length of data
+placeholder = []        # Placeholder list used for converting.    
 
 def list_to_byte(data: list):
     '''
     @param: a list containing integers
     @returns: a list with the byte format of the integers
     '''
-	cs = len(data) | 192       
-	seq = [255, cs] + data
-	seq += [sum(seq) % 256]
-	return bytes(seq)
+    cs = len(data) | 192        # ...
+    seq = [255, cs] + data      # ...
+    seq += [sum(seq) % 256]     # ...
+    return bytes(seq)       # Returns the byte format of the list. 
 
 def byte_to_list(byteInput: list):
     '''
@@ -69,7 +69,7 @@ def byte_to_list(byteInput: list):
 
 def check_for_incomplete_data(input2: list):
     '''
-    @param: A list of containing numbers in byte format
+    @param: A list of containing numbers in byte formatg
     @return: A list with specific values.
     '''
     global finalList        # A global final list

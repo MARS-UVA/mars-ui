@@ -17,6 +17,11 @@ if __name__ == "__main__":
                 data = conn.recv(1024)
                 ser.write(data)
                 time.sleep(0.01)
+                bytesToRead = ser.inWaiting()
+                ser.read(bytesToRead)
+                time.sleep(0.01)
+
+         
 
         except KeyboardInterrupt:
             print("Shutting down the socket")

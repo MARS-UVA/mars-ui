@@ -1,7 +1,8 @@
 import socket
 import time
-import math
-from gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
+
+from .gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
+from ..utils.protocol import var_len_proto_send
 
 
 def thresh(a, l_th=0.1, u_th=1):
@@ -43,15 +44,6 @@ def get_values():
     return values
 
 
-def send_data(data: list):
-    count = len(data) | 0b11000000
-
-    buffer = [0xff, count]
-    buffer.extend(data)
-    buffer.append(sum(buffer) % 256)
-    return bytes(buffer)
-
-
 HOST = '172.27.39.176'    # The remote host
 PORT = 6666              # The same port as used by the server
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -59,5 +51,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     while True:
         vals = get_values()
         print(vals)
-        s.send(send_data(vals))
+        s.send(var_len_proto_send(vals))
         time.sleep(0.01)

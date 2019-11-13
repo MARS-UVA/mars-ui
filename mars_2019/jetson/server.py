@@ -2,7 +2,7 @@ import socket
 import traceback
 import time
 import serial
-from serial_proto_ethan import var_len_proto_send
+from ..utils.protocol import var_len_proto_recv
 
 if __name__ == "__main__":
     ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
@@ -16,12 +16,13 @@ if __name__ == "__main__":
             while True:
                 data = conn.recv(1024)
                 ser.write(data)
-                time.sleep(0.01)
-                bytesToRead = ser.inWaiting()
-                ser.read(bytesToRead)
-                time.sleep(0.01)
 
-         
+                data = var_len_proto_recv(ser.read(ser.inWaiting()))
+                for piece in data:
+                    if len(piece):
+                        print(piece)
+
+                time.sleep(0.001)
 
         except KeyboardInterrupt:
             print("Shutting down the socket")

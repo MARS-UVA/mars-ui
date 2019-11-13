@@ -17,7 +17,9 @@ if __name__ == "__main__":
                 data = conn.recv(1024)
                 ser.write(data)
 
-                data = var_len_proto_recv(ser.read(ser.inWaiting()))
+                raw_data = ser.read(ser.inWaiting())
+                print(raw_data)
+                data = var_len_proto_recv(raw_data)
                 for piece in data:
                     if len(piece):
                         print(piece)

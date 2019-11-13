@@ -3,6 +3,7 @@ import traceback
 import time
 import serial
 from ..utils.protocol import var_len_proto_recv
+import struct
 
 if __name__ == "__main__":
     ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
@@ -21,7 +22,7 @@ if __name__ == "__main__":
                 data = var_len_proto_recv(raw_data)
                 for piece in data:
                     if len(piece):
-                        print(piece)
+                        print(struct.unpack('7f', piece))
 
                 time.sleep(0.001)
 

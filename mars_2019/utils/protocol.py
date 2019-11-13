@@ -31,7 +31,7 @@ def var_len_proto_recv(data: bytes):
                     temp = temp[i + expected_len:]
 
                     if sum(slc[:-1]) % 256 == slc[-1]:
-                        output.append(list(slc[2:-1]))
+                        output.append(slc[2:-1])
                     break
                 else:
                     # not enough bytes

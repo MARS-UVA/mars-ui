@@ -1,5 +1,4 @@
 import socket
-import traceback
 import time
 import serial
 from ..utils.protocol import var_len_proto_recv

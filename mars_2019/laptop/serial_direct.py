@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Qt5agg")
 
 import matplotlib.pyplot as plt
-from .non_blocking import NBInput
+from ..utils.non_blocking import NBInput
 
 ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
 default_values = [100, 100, 100, 100, 100, 100, 100]

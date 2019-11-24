@@ -1,4 +1,4 @@
-from _serial_proto import var_len_proto_recv, var_len_proto_send
+from .protocol import var_len_proto_recv, var_len_proto_send
 from random import randint
 
 

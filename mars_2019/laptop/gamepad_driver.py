@@ -191,16 +191,6 @@ def get_gamepad_values():
         else:
             button_states[btn] = False
 
-    # Format a list of currently pressed buttons.
-    # prev_len = len(buttons_text)
-    buttons_text = " "
-    for btn in button_names + povbtn_names:
-        if button_states.get(btn):
-            buttons_text += btn + ' '
-
-    # Add spaces to erase data from the previous line
-    # erase = ' ' * max(0, prev_len - len(buttons_text))
-
     # Display the x, y, trigger values.
     # print ("\r(% .3f % .3f % .3f) (% .3f % .3f % .3f)%s%s" % (x, y, lt, rx, ry, rt, buttons_text, erase),)
 

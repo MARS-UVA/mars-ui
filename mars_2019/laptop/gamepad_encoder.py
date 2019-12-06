@@ -13,13 +13,7 @@ def thresh(a, l_th=0.1, u_th=1):
     return a
 
 
-def get_values():
-
-    # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
-    if joyGetPosEx(0, p_info) != 0:
-        return []
-
-    data = get_gamepad_values()
+def gamepad_to_motor(data):
     y = data[1]
     ry = -data[2]
     rx = -data[3]
@@ -35,8 +29,6 @@ def get_values():
 
     values = []
     values.append(int(thresh(ry-rx, 0.1) * 100 + 100))
-    values.append(int(thresh(ry-rx, 0.1) * 100 + 100))
-    values.append(int(thresh(ry+rx, 0.1) * 100 + 100))
     values.append(int(thresh(ry+rx, 0.1) * 100 + 100))
     values.append(int(y_or_a * 100 + 100))
     values.append(int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100))
@@ -49,7 +41,10 @@ PORT = 6666              # The same port as used by the server
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
     while True:
-        vals = get_values()
+        # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
+        if joyGetPosEx(0, p_info) != 0:
+            break
+        vals = gamepad_to_motor(get_gamepad_values())
         print(vals)
         s.send(var_len_proto_send(vals))
         time.sleep(0.01)

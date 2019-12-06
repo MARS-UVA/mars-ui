@@ -1,7 +1,8 @@
 import socket
+import typing
 
 
-def var_len_proto_send(data: list):
+def var_len_proto_send(data: list) -> bytes:
     count = len(data)
     count = count | 0b11000000
 
@@ -14,7 +15,7 @@ def var_len_proto_send(data: list):
 temp = bytes()
 
 
-def var_len_proto_recv(data: bytes):
+def var_len_proto_recv(data: bytes) -> typing.List[bytes]:
     global temp
     temp += data
     output = []

@@ -18,10 +18,11 @@ class NBInput:
         self.thread.start()
 
     def get(self):
-        try:
-            return self.queue.get_nowait()
-        except:
-            return ""
+        return self.queue.get_nowait()
+
+
+    def empty(self):
+        return self.queue.empty()
 
 if __name__ == "__main__":
     inp = NBInput()

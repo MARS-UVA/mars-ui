@@ -4,3 +4,4 @@ _*
 !__init__.py
 node_modules
 .mypy_cache
+temp

@@ -31,13 +31,20 @@ width = opt.width
 height = opt.height
 classes = jetson.utils.cudaAllocMapped(width * height)
 
-def frame_generator():
+def frame_generator(save_out=True, save_len=100):
     downscale = 2
 
     out_width = opt.width // downscale
     out_height = opt.height // downscale
 
-    output = np.zeros((out_height, out_width * 3, 3), dtype=np.uint8)
+    output = np.zeros((out_height, out_width * 3, 3), dtype="uint8")
+    
+    # --------------- save output -----------------
+    if save_out:
+        out_series = np.zeros((save_len, *output.shape), dtype="uint8")
+        counter = 0
+    # --------------- save output ----------------- 
+
     rgbd_generator = generate_rgbd()
     rgba_img = np.ones((height, width, 4), dtype="float32") * 255
     while True:
@@ -61,7 +68,14 @@ def frame_generator():
         output[:, out_width:2 * out_width, :] = cv2.resize(color_img, (out_width, out_height))
         output[:, 2 * out_width:, :] = cv2.resize(depth_img, (out_width, out_height))[:, :, np.newaxis]
 
+        if save_out:
+            if counter < len(out_series):
+                out_series[counter] = output
+                counter += 1
+            elif counter == len(out_series):
+                np.save("series.npy", out_series)
+
         yield output
 
 if __name__ == "__main__":
-    start_stream(frame_generator())
+    start_stream(frame_generator(), 8081)

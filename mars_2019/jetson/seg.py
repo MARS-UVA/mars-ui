@@ -8,6 +8,8 @@ import numpy as np
 import ctypes
 import sys
 import argparse
+import pickle
+
 
 # parse the command line
 parser = argparse.ArgumentParser(description="Segment a live camera stream using an semantic segmentation DNN.", 
@@ -40,14 +42,14 @@ def frame_generator(save_out=True, save_len=100):
     output = np.zeros((out_height, out_width * 3, 3), dtype="uint8")
     
     # --------------- save output -----------------
-    if save_out:
-        out_series = np.zeros((save_len, *output.shape), dtype="uint8")
-        counter = 0
+    save_frames = []
+    counter = 0
     # --------------- save output ----------------- 
 
     rgbd_generator = generate_rgbd()
     rgba_img = np.ones((height, width, 4), dtype="float32") * 255
     while True:
+        # depth image type: uint16
         depth_img, color_img = next(rgbd_generator)
         rgba_img[:, :, :3] = color_img
 
@@ -60,20 +62,35 @@ def frame_generator(save_out=True, save_len=100):
         mask_np = mask_np.view('uint8').reshape(out_height, out_width)
 
         output.fill(0)
+        
         # color the ground with white color.
         output[:, :out_width, :][
             ((mask_np == 2) | (mask_np == 3) | (mask_np == 4) | (mask_np == 12)) #
         ] = (255, 255, 255)
 
-        output[:, out_width:2 * out_width, :] = cv2.resize(color_img, (out_width, out_height))
-        output[:, 2 * out_width:, :] = cv2.resize(depth_img, (out_width, out_height))[:, :, np.newaxis]
+        cv2.resize(color_img, (out_width, out_height), dst=output[:, out_width:2 * out_width, :])
+
+        # resize depth image
+        resized_depth_img = cv2.resize(depth_img, (out_width, out_height), interpolation=cv2.INTER_NEAREST)
+
+        # visualization
+        minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(resized_depth_img)
+        output[:, 2 * out_width:, :] = cv2.applyColorMap(
+            cv2.convertScaleAbs(resized_depth_img, alpha=255 / maxVal if maxVal != 0 else 1, beta=0), cv2.COLORMAP_JET
+        )
 
         if save_out:
-            if counter < len(out_series):
-                out_series[counter] = output
+            if counter < save_len:
+                save_frames.append({
+                    "depth": depth_img.copy(),
+                    "color": color_img.copy(),
+                    "mask": mask_np.copy()
+                })
                 counter += 1
-            elif counter == len(out_series):
-                np.save("series.npy", out_series)
+            elif counter == save_len:
+                print("saving dump...")
+                pickle.dump(save_frames, open("raw_data.pkl", "wb"))
+                counter += 1
 
         yield output
 

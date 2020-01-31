@@ -6,3 +6,5 @@ node_modules
 .mypy_cache
 temp
 *.pkl
+*_pb2*.py
+*.proto

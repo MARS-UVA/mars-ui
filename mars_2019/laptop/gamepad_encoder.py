@@ -1,50 +1,47 @@
-import socket
 import time
+import logging
+import grpc
+import cv2
+import numpy as np
 
-from .gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
-from ..utils.protocol import var_len_proto_send
+from . import jetsonrpc_pb2_grpc
+from . import jetsonrpc_pb2
 
+# uint8 view of the motor values
+motor_arr_uint8 = np.zeros(8, "uint8")
+# uint64 view of the motor values
+motor_ui64v = motor_arr_uint8.view("uint64")
 
-def thresh(a, l_th=0.1, u_th=1):
-    if abs(a) < l_th:
-        return 0
-    elif abs(a) > u_th:
-        return -1 if a < 0 else 1
-    return a
-
-
-def gamepad_to_motor(data):
-    y = data[1]
-    ry = -data[2]
-    rx = -data[3]
-    lt = data[5]
-    rt = data[6]
-    button_states = data[7]
-
-    y_or_a = 0.0
-    if button_states['y']:
-        y_or_a = 1.0
-    elif button_states['a']:
-        y_or_a = -1.0
-
-    values = []
-    values.append(int(thresh(ry-rx, 0.1) * 100 + 100))
-    values.append(int(thresh(ry+rx, 0.1) * 100 + 100))
-    values.append(int(y_or_a * 100 + 100))
-    values.append(int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100))
-    values.append(int(thresh(y, 0.1) * 100 + 100))
-    return values
-
-
-HOST = '172.27.39.176'    # The remote host
-PORT = 6666              # The same port as used by the server
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
+def gamepad_val_gen():
+    from .gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
     while True:
         # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
         if joyGetPosEx(0, p_info) != 0:
             break
-        vals = gamepad_to_motor(get_gamepad_values())
-        print(vals)
-        s.send(var_len_proto_send(vals))
-        time.sleep(0.01)
+        get_gamepad_values(motor_arr_uint8)
+        yield jetsonrpc_pb2.MotorCmd(values=motor_ui64v[0])
+
+def dummy_val_gen():
+    import random
+    while True:
+        for i in range(7):
+            num = random.randint(0, 255)
+            motor_arr_uint8[i] = num
+            print(num, end=" ")
+        print()
+        time.sleep(0.25)
+        yield jetsonrpc_pb2.MotorCmd(values=motor_ui64v[0])
+        
+
+HOST = '0.0.0.0'    # The remote host
+PORT = 50051        # The same port as used by the server
+
+def run():
+    with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
+        stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+        response = stub.SendMotorCmd(dummy_val_gen())
+        print(response)
+
+if __name__ == '__main__':
+    logging.basicConfig()
+    run()

@@ -95,4 +95,4 @@ def frame_generator(save_out=True, save_len=100):
         yield output
 
 if __name__ == "__main__":
-    start_stream(frame_generator(), 8081)
+    start_stream(frame_generator(False), 8081)

@@ -8,6 +8,7 @@ import ctypes
 import winreg as winreg
 from ctypes.wintypes import WORD, UINT, DWORD
 from ctypes.wintypes import WCHAR as TCHAR
+import numpy as np
 
 # Fetch function pointers
 joyGetNumDevs = ctypes.windll.winmm.joyGetNumDevs
@@ -156,7 +157,15 @@ info.dwFlags = JOY_RETURNBUTTONS | JOY_RETURNCENTERED | JOY_RETURNPOV | JOY_RETU
 p_info = ctypes.pointer(info)
 
 
-def get_gamepad_values():
+def thresh(a, l_th=0.1, u_th=1):
+    if abs(a) < l_th:
+        return 0
+    elif abs(a) > u_th:
+        return -1 if a < 0 else 1
+    return a
+
+
+def get_gamepad_values(motor_arr_uint8):
     # Remap the values to float
     x = (info.dwXpos - 32767) / 32768.0
     y = (info.dwYpos - 32767) / 32768.0
@@ -193,8 +202,25 @@ def get_gamepad_values():
 
     # Display the x, y, trigger values.
     # print ("\r(% .3f % .3f % .3f) (% .3f % .3f % .3f)%s%s" % (x, y, lt, rx, ry, rt, buttons_text, erase),)
-
     # print info.dwXpos, info.dwYpos, info.dwZpos, info.dwRpos, info.dwUpos, info.dwVpos, info.dwButtons, info.dwButtonNumber, info.dwPOV, info.dwReserved1, info.dwReserved2
-    time.sleep(0.01)
 
-    return (x, y, rx, ry, trig, lt, rt, button_states)
+    y_or_a = 0.0
+    if button_states['y']:
+        y_or_a = 1.0
+    elif button_states['a']:
+        y_or_a = -1.0
+
+    ry = -ry
+    rx = -rx
+
+    left_motor = int(thresh(ry-rx, 0.1) * 100 + 100)
+    right_motor = int(thresh(ry+rx, 0.1) * 100 + 100)
+    m1 = int(y_or_a * 100 + 100)
+    m2 = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100)
+    m3 = int(thresh(y, 0.1) * 100 + 100)
+
+    arr[0:2] = left_motor
+    arr[2:4] = right_motor
+    arr[4] = m1
+    arr[5] = m2
+    arr[6] = m3

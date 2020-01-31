@@ -213,14 +213,8 @@ def get_gamepad_values(motor_arr_uint8):
     ry = -ry
     rx = -rx
 
-    left_motor = int(thresh(ry-rx, 0.1) * 100 + 100)
-    right_motor = int(thresh(ry+rx, 0.1) * 100 + 100)
-    m1 = int(y_or_a * 100 + 100)
-    m2 = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100)
-    m3 = int(thresh(y, 0.1) * 100 + 100)
-
-    arr[0:2] = left_motor
-    arr[2:4] = right_motor
-    arr[4] = m1
-    arr[5] = m2
-    arr[6] = m3
+    motor_arr_uint8[0:2] = int(thresh(ry-rx, 0.1) * 100 + 100)  # left motor
+    motor_arr_uint8[2:4] = int(thresh(ry+rx, 0.1) * 100 + 100)  # right motor
+    motor_arr_uint8[4] = int(y_or_a * 100 + 100)  # motor of the deposit bucket
+    motor_arr_uint8[5] = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100)  # motor of the bucket ladder
+    motor_arr_uint8[6] = int(thresh(y, 0.1) * 100 + 100)  # actuator of the arm

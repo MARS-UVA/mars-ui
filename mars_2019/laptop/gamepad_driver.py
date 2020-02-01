@@ -204,17 +204,19 @@ def get_gamepad_values(motor_arr_uint8):
     # print ("\r(% .3f % .3f % .3f) (% .3f % .3f % .3f)%s%s" % (x, y, lt, rx, ry, rt, buttons_text, erase),)
     # print info.dwXpos, info.dwYpos, info.dwZpos, info.dwRpos, info.dwUpos, info.dwVpos, info.dwButtons, info.dwButtonNumber, info.dwPOV, info.dwReserved1, info.dwReserved2
 
-    y_or_a = 0.0
-    if button_states['y']:
-        y_or_a = 1.0
-    elif button_states['a']:
-        y_or_a = -1.0
-
     ry = -ry
     rx = -rx
 
-    motor_arr_uint8[0:2] = int(thresh(ry-rx, 0.1) * 100 + 100)  # left motor
-    motor_arr_uint8[2:4] = int(thresh(ry+rx, 0.1) * 100 + 100)  # right motor
-    motor_arr_uint8[4] = int(y_or_a * 100 + 100)  # motor of the deposit bucket
-    motor_arr_uint8[5] = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100)  # motor of the bucket ladder
-    motor_arr_uint8[6] = int(thresh(y, 0.1) * 100 + 100)  # actuator of the arm
+    motor_arr_uint8[0] = int(thresh(ry-rx, 0.1) * 100 + 100)  # left motor
+    motor_arr_uint8[1] = int(thresh(ry+rx, 0.1) * 100 + 100)  # right motor
+    motor_arr_uint8[2] = int(thresh(y, 0.1) * 100 + 100)  # actuator of the arm
+    ladder = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100) # motor of the bucket ladder
+    motor_arr_uint8[3] = ladder & 0b11111100
+    # motor of the deposit bucket
+    if button_states['y']:
+        motor_arr_uint8[3] |= 0b10
+    elif button_states['a']:
+        pass
+    else:
+        motor_arr_uint8[3] |= 0b01
+    

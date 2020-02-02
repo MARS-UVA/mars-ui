@@ -1,18 +1,17 @@
+from ..utils.protocol import var_len_proto_send, var_len_proto_recv
+import struct
 from ..utils.non_blocking import NBInput
 import matplotlib.pyplot as plt
-import socket
 import time
 import serial
-import struct
-import queue
-from ..utils.protocol import var_len_proto_send, var_len_proto_recv
+ser = serial.Serial("COM4", 115200)
 
-import matplotlib
-matplotlib.use("Qt5agg")
+# import matplotlib
+# matplotlib.use("Qt5agg")
 
-ser = serial.Serial('COM4', 115200, timeout=1)
+
 # ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
-default_values = [100, 100, 100, 100, 100, 100, 100]
+default_values = [100, 100, 100, 100, 100, 100, 100, 100]
 values = default_values.copy()
 init_time = time.time()
 inp = NBInput()
@@ -42,7 +41,7 @@ while True:
     now = time.time() - init_time
     new_values = []
     for piece in data:
-        unpacked = struct.unpack('7f', piece)
+        unpacked = struct.unpack('8B', piece)
         new_values.append(unpacked[MOTOR])
 
     if len(new_values):

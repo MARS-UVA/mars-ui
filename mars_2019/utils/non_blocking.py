@@ -1,9 +1,11 @@
 import sys
 import threading
-import multiprocessing as mp
+import queue
 import time
 
 # non blocking input
+
+
 class NBInput:
     @staticmethod
     def __input__(queue):
@@ -12,7 +14,7 @@ class NBInput:
 
     def __init__(self):
         super().__init__()
-        self.queue = mp.Manager().Queue()
+        self.queue = queue.Queue()
         self.thread = threading.Thread(target=self.__input__, args=(self.queue,))
         self.thread.daemon = True
         self.thread.start()
@@ -20,9 +22,9 @@ class NBInput:
     def get(self):
         return self.queue.get_nowait()
 
-
     def empty(self):
         return self.queue.empty()
+
 
 if __name__ == "__main__":
     inp = NBInput()

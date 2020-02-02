@@ -165,7 +165,7 @@ def thresh(a, l_th=0.1, u_th=1):
     return a
 
 
-def get_gamepad_values(motor_arr_uint8):
+def get_gamepad_values():
     # Remap the values to float
     x = (info.dwXpos - 32767) / 32768.0
     y = (info.dwYpos - 32767) / 32768.0
@@ -204,19 +204,38 @@ def get_gamepad_values(motor_arr_uint8):
     # print ("\r(% .3f % .3f % .3f) (% .3f % .3f % .3f)%s%s" % (x, y, lt, rx, ry, rt, buttons_text, erase),)
     # print info.dwXpos, info.dwYpos, info.dwZpos, info.dwRpos, info.dwUpos, info.dwVpos, info.dwButtons, info.dwButtonNumber, info.dwPOV, info.dwReserved1, info.dwReserved2
 
+    # print(x, y, rx, ry, button_states)
+
     ry = -ry
     rx = -rx
+    y = -y
 
-    motor_arr_uint8[0] = int(thresh(ry-rx, 0.1) * 100 + 100)  # left motor
-    motor_arr_uint8[1] = int(thresh(ry+rx, 0.1) * 100 + 100)  # right motor
-    motor_arr_uint8[2] = int(thresh(y, 0.1) * 100 + 100)  # actuator of the arm
-    ladder = int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100) # motor of the bucket ladder
-    motor_arr_uint8[3] = ladder & 0b11111100
-    # motor of the deposit bucket
+    dbin = 1
     if button_states['y']:
-        motor_arr_uint8[3] |= 0b10
+        dbin = 2
     elif button_states['a']:
-        pass
+        dbin = 0
+
+    if abs(x) > abs(y):
+        y = 0
     else:
-        motor_arr_uint8[3] |= 0b01
-    
+        x = 0
+
+    args = (
+        int(thresh(ry-rx, 0.1) * 100 + 100),
+        int(thresh(ry+rx, 0.1) * 100 + 100),
+        int(thresh(x, 0.1) * 100 + 100),
+        int(thresh(y, 0.1) * 100 + 100),
+        int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100),
+        dbin
+    )
+    return args
+
+
+if __name__ == "__main__":
+    while True:
+        if joyGetPosEx(0, p_info) != 0:
+            print("Gamepad disconnected")
+            break
+        get_gamepad_values()
+        time.sleep(0.1)

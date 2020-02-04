@@ -42,7 +42,7 @@ while True:
     new_values = []
     for piece in data:
         unpacked = struct.unpack('8B', piece)
-        new_values.append(unpacked[MOTOR])
+        new_values.append(unpacked[MOTOR] * 0.25)
 
     if len(new_values):
         prev_len = len(prev_values)

@@ -44,7 +44,7 @@ def dummy_val_gen():
         ))
 
 
-HOST = '192.168.86.162'    # The remote host
+HOST = '172.27.39.1'    # The remote host
 PORT = 50051        # The same port as used by the server
 
 

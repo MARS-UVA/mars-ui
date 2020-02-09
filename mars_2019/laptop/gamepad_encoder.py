@@ -8,6 +8,7 @@ import platform
 from . import jetsonrpc_pb2_grpc
 from . import jetsonrpc_pb2
 from ..utils.protocol import encode_values
+from .keyboard_driver import keyboard_val_gen
 
 
 def gamepad_val_gen():
@@ -51,7 +52,7 @@ PORT = 50051        # The same port as used by the server
 def run():
     with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-        response = stub.SendMotorCmd(gamepad_val_gen())
+        response = stub.SendMotorCmd(keyboard_val_gen())
         print(response)
 
 

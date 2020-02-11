@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 import platform
 
-from . import jetsonrpc_pb2_grpc
-from . import jetsonrpc_pb2
+from .protos import jetsonrpc_pb2_grpc
+from .protos import jetsonrpc_pb2
 from ..utils.protocol import encode_values
 from .keyboard_driver import keyboard_val_gen
 

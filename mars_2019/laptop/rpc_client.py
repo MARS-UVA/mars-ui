@@ -37,9 +37,15 @@ def send_motor_cmd(stub: STUB, gen):
 
 
 if __name__ == '__main__':
-    with grpc.insecure_channel('172.27.39.1:50051') as channel:
+    with grpc.insecure_channel('localhost:50051') as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
-        data = stream_motor_current(stub)
+        data = stream_imu(stub)
+        counter = 0
         for item in data:
             print(item)
+            counter += 1
+            if counter > 10:
+                data.close()
+                # break
+        

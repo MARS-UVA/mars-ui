@@ -52,7 +52,7 @@ PORT = 50051        # The same port as used by the server
 def run():
     with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-        response = stub.SendMotorCmd(keyboard_val_gen())
+        response = stub.SendMotorCmd(gamepad_val_gen())
         print(response)
 
 

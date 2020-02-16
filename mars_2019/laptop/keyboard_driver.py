@@ -1,4 +1,7 @@
 import keyboard
+from .protos import jetsonrpc_pb2
+from ..utils.protocol import encode_values
+
 
 def keyboard_val_gen():
     key_status = {'w': False, 'a': False, 's': False, 'd': False}

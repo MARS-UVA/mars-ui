@@ -206,8 +206,7 @@ def get_gamepad_values():
 
     # print(x, y, rx, ry, button_states)
 
-    ry = -ry
-    rx = -rx
+    rx, ry = ry, rx  # the axes are flipped for this gamepad
     y = -y
 
     dbin = 1

@@ -8,11 +8,13 @@ First, make sure you have grpc installed
 pip install grpcio grpcio-tools
 ```
 
-To use the rpc client, copy the [jetsonroc.proto file](https://github.com/hanzhi713/mars-ros/blob/master/src/rpc-server/jetsonrpc.proto) from the mars-ros repository, and then compile the protocol definitions
+To setup the rpc client, you need to
+1. get [jetsonrpc.proto file](https://github.com/hanzhi713/mars-ros/blob/master/src/rpc-server/jetsonrpc.proto)
+2. create a folder called `protos`
+3. move jetsonrpc.proto into the `protos` folder
+4. run the following command
 
 ```bash
 cd mars_2019/laptop
-python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. jetsonrpc.proto
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. protos/jetsonrpc.proto
 ```
-
-

@@ -2,8 +2,8 @@ import grpc
 import cv2
 import numpy as np
 
-from . import jetsonrpc_pb2_grpc
-from . import jetsonrpc_pb2
+from .protos import jetsonrpc_pb2_grpc
+from .protos import jetsonrpc_pb2
 import typing
 import struct
 
@@ -25,8 +25,11 @@ def stream_imu(stub: STUB):
 
 def stream_motor_current(stub: STUB):
     response = stub.StreamMotorCurrent(jetsonrpc_pb2.Void())
+    arr = np.zeros(1, 'uint64')
+    arr_uint8v = arr.view('uint8')
     for item in response:
-        yield struct.unpack('8B', item.values)
+        arr[0] = item.values
+        yield tuple(arr_uint8v)
 
 
 def send_motor_cmd(stub: STUB, gen):
@@ -34,9 +37,20 @@ def send_motor_cmd(stub: STUB, gen):
 
 
 if __name__ == '__main__':
-    with grpc.insecure_channel('localhost:50051') as channel:
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("host", type=str, default="localhost")
+    args = parser.parse_args()
+
+    with grpc.insecure_channel(args.host + ':50051') as channel:
+        print("Connected to", args.host)
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
-        data = stream_imu(stub)
+        data = stream_motor_current(stub)
+        counter = 0
         for item in data:
             print(item)
+        #     counter += 1
+        #     if counter > 10:
+        #         break
+        # data.close()

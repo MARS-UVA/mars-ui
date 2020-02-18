@@ -10,20 +10,13 @@ There will be more tasks...
 """
 
 # finish series graph, frame with check boxes for 8 motors, threading for animate (one thread reads fast data and stores the most recent data, slow animate function reads that value)
-# python3 -m mars_2019.laptop.tkinter_test_class (on branch master)
-
-import tkinter as tk
-# from tkinter import *
+# python3 -m mars_2019.laptop.gui_test_grpc
 
 from gui_graph import LineGraph
-# import matplotlib.pyplot as plt
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# import matplotlib.animation as animation
-# import numpy as np
-# from collections import deque
 
 from . import rpc_client
 from .protos import jetsonrpc_pb2_grpc
+import tkinter as tk
 import grpc
 import threading
 import time
@@ -37,11 +30,9 @@ class DataThread(threading.Thread):
 		self.name = name
 		self.counter = counter
 
-		# self.channel = grpc.insecure_channel('172.27.39.1:50051')
-		# self.stub = jetsonrpc_pb2_grpc.JetsonRPCStub(self.channel)
-		# self.gen = rpc_client.stream_motor_current(self.stub)
-
-		# self.gen = fake_generator
+		self.channel = grpc.insecure_channel('172.27.39.1:50051')
+		self.stub = jetsonrpc_pb2_grpc.JetsonRPCStub(self.channel)
+		self.gen = rpc_client.stream_motor_current(self.stub)
 
 		self.stopped = False
 		self.recent_data = None
@@ -49,9 +40,8 @@ class DataThread(threading.Thread):
 	def run(self):
 		# print("starting thread")
 		while not self.stopped:
-			# self.recent_data = next(self.gen)
-			self.recent_data = next(fake_generator())
-			# self.recent_data = int(random.random()*10)
+			self.recent_data = next(self.gen)
+			# self.recent_data = next(fake_generator())
 			# time.sleep(1)
 
 	def get_recent_data(self):
@@ -59,19 +49,13 @@ class DataThread(threading.Thread):
 		return self.recent_data
 
 	def stop(self):
-		# print(stopping thread)
-		# self.channel.close()
+		# print("stopping thread")
+		self.channel.close()
 		self.stopped = True
 
 
 def animate(tick):
 	return dt.get_recent_data()
-	# return next(g)
-
-def fake_generator():
-	while True:
-		yield [int(random.random()*10) for i in range(8)]
-		# yield int(random.random()*10)
 		
 if __name__ == '__main__':
 
@@ -80,14 +64,9 @@ if __name__ == '__main__':
 	root = tk.Tk()
 	root.geometry("{}x{}".format(root_width, root_height)) # https://stackoverflow.com/questions/34276663/tkinter-gui-layout-using-frames-and-grid
 
-	
-	#print("Connected to", args.host)
-	# stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-	# g = rpc_client.stream_motor_current(stub)
 
 	dt = DataThread(1, "dt1", 1)
 	dt.start()
-
 
 
 	graph1 = LineGraph(root, animate)
@@ -99,33 +78,3 @@ if __name__ == '__main__':
 	dt.stop()
 	dt.join()
 
-
-
-
-
-"""
-from tkinter import *
-
-root = Tk()
-frame = Frame(root)
-frame.pack()
-
-bottomframe = Frame(root)
-bottomframe.pack( side = BOTTOM )
-
-
-redbutton = Button(frame, text = "Red", fg = "red")
-redbutton.pack( side = LEFT)
-
-greenbutton = Button(frame, text = "Brown", fg="brown")
-greenbutton.pack( side = LEFT )
-
-bluebutton = Button(frame, text = "Blue", fg = "blue")
-bluebutton.pack( side = LEFT )
-
-blackbutton = Button(bottomframe, text = "Black", fg = "black")
-blackbutton.pack( side = BOTTOM)
-
-root.mainloop()
-
-"""

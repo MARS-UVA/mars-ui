@@ -29,7 +29,7 @@ def stream_motor_current(stub: STUB, rate=30):
     arr_uint8v = arr.view('uint8')
     for item in response:
         arr[0] = item.values
-        yield tuple(arr_uint8v)
+        yield arr_uint8v.astype("float32")
 
 
 def send_motor_cmd(stub: STUB, gen):

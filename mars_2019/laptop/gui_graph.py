@@ -26,7 +26,7 @@ class LineGraph(tk.Frame):
 		# self.plot = self.ax.plot(list(self.data))[0] # np.arange(0, self.datalen), 
 		self.plot = [self.ax.plot([0]*self.datalen)[0] for i in range(self.datacolumns)]
 
-		self.anim = animation.FuncAnimation(self.fig, self.animate, fargs=(self.data, self.plot, get_data_function), interval=50, blit=False) # change graphing interval here
+		self.anim = animation.FuncAnimation(self.fig, self.animate, fargs=(self.data, self.plot, get_data_function), interval=1, blit=False) # change graphing interval here
 
 	def animate(b, tick, data, plot, func):
 		new_val = func(tick)

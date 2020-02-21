@@ -26,13 +26,17 @@ import random
 class DataThread(threading.Thread):
 	def __init__(self, threadID, name, counter):
 		threading.Thread.__init__(self)
+		self.TESTING = False
 		self.threadID = threadID
 		self.name = name
 		self.counter = counter
 
-		self.channel = grpc.insecure_channel('172.27.39.1:50051')
-		self.stub = jetsonrpc_pb2_grpc.JetsonRPCStub(self.channel)
-		self.gen = rpc_client.stream_motor_current(self.stub)
+		if not self.TESTING:
+			self.channel = grpc.insecure_channel('172.27.39.1:50051')
+			self.stub = jetsonrpc_pb2_grpc.JetsonRPCStub(self.channel)
+			self.gen = rpc_client.stream_motor_current(self.stub)
+		else:
+			self.gen = self.fake_generator()
 
 		self.stopped = False
 		self.recent_data = None
@@ -40,7 +44,7 @@ class DataThread(threading.Thread):
 	def run(self):
 		# print("starting thread")
 		while not self.stopped:
-			self.recent_data = next(self.gen)
+			self.recent_data = next(self.gen) # TODO divide by 4
 			# self.recent_data = next(fake_generator())
 			# time.sleep(1)
 
@@ -50,24 +54,27 @@ class DataThread(threading.Thread):
 
 	def stop(self):
 		# print("stopping thread")
-		self.channel.close()
 		self.stopped = True
+		if not self.TESTING:
+			self.channel.close()
+
+	def fake_generator(self):
+		while not self.stopped:
+			yield [random.randint(0, 15) for i in range(8)]
+			time.sleep(0.01)
 
 
 def animate(tick):
 	return dt.get_recent_data()
 		
 if __name__ == '__main__':
-
 	root_width = 1280
 	root_height = 720
 	root = tk.Tk()
-	root.geometry("{}x{}".format(root_width, root_height)) # https://stackoverflow.com/questions/34276663/tkinter-gui-layout-using-frames-and-grid
-
+	root.geometry("{}x{}".format(root_width, root_height))
 
 	dt = DataThread(1, "dt1", 1)
 	dt.start()
-
 
 	graph1 = LineGraph(root, animate)
 	graph1.pack(side=tk.TOP)

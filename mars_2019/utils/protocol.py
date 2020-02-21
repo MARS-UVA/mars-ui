@@ -3,21 +3,20 @@ import typing
 
 
 def var_len_proto_send(data: list) -> bytes:
-    count = len(data)
-    count = count | 0b11000000
-
-    buffer = [0xff, count]
+    buffer = bytearray()
+    buffer.append(0xff)
+    buffer.append(len(data) | 0b11000000)
     buffer.extend(data)
     buffer.append(sum(buffer) % 256)
-    return bytes(buffer)
+    return buffer
 
 
-temp = bytes()
+temp = bytearray()
 
 
-def var_len_proto_recv(data: bytes) -> typing.List[bytes]:
+def var_len_proto_recv(data: bytes) -> typing.List[bytearray]:
     global temp
-    temp += data
+    temp.extend(data)
     output = []
     while len(temp) > 2:  # read at least 3 bytes
         for i in range(len(temp) - 2):
@@ -29,17 +28,17 @@ def var_len_proto_recv(data: bytes) -> typing.List[bytes]:
                     slc = temp[i:i + expected_len]
 
                     # remove bytes already read
-                    temp = temp[i + expected_len:]
+                    del temp[:i + expected_len]
 
                     if sum(slc[:-1]) % 256 == slc[-1]:
                         output.append(slc[2:-1])
                     break
                 else:
                     # not enough bytes
-                    temp = temp[i:]  # remove bytes already read
+                    del temp[:i]  # remove bytes already read
                     return output
         else:  # no single matching byte, remove all
-            temp = bytes()
+            temp.clear()
     return output
 
 

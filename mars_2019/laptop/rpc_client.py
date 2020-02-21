@@ -10,21 +10,21 @@ import struct
 STUB = jetsonrpc_pb2_grpc.JetsonRPCStub
 
 
-def stream_image(stub: STUB):
-    response = stub.StreamImage(jetsonrpc_pb2.Void())
+def stream_image(stub: STUB, rate=30):
+    response = stub.StreamImage(jetsonrpc_pb2.Rate(rate=rate))
     for item in response:
         arr = np.frombuffer(item.data, "uint8")
         yield cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
 
-def stream_imu(stub: STUB):
-    response = stub.StreamIMU(jetsonrpc_pb2.Void())
+def stream_imu(stub: STUB, rate=30):
+    response = stub.StreamIMU(jetsonrpc_pb2.Rate(rate=rate))
     for item in response:
         yield item.values
 
 
-def stream_motor_current(stub: STUB):
-    response = stub.StreamMotorCurrent(jetsonrpc_pb2.Void())
+def stream_motor_current(stub: STUB, rate=30):
+    response = stub.StreamMotorCurrent(jetsonrpc_pb2.Rate(rate=rate))
     arr = np.zeros(1, 'uint64')
     arr_uint8v = arr.view('uint8')
     for item in response:

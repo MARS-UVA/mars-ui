@@ -9,6 +9,9 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from . import gui_graph
+from . import gui_datathread
+
 class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
@@ -106,7 +109,8 @@ class MainApplication(tk.Frame):
 
         # Graph Tabs
         tab_parent_graph = ttk.Notebook(graph_panel)
-        graph1 = tk.Frame(tab_parent_graph, background="white")
+        graph1 = gui_graph.LineGraph(tab_parent_graph, graph1_data_animate) # this hides the notebook tabs?
+        #graph1 = tk.Frame(tab_parent_graph, background="white")
         graph2 = tk.Frame(tab_parent_graph, background="white")
         graph3 = tk.Frame(tab_parent_graph, background="white")
 
@@ -115,14 +119,19 @@ class MainApplication(tk.Frame):
         tab_parent_graph.add(graph3, text="Graph 3")
         tab_parent_graph.pack(expand=1, fill='both')
 
-        
-        
+
+def graph1_data_animate(tick):
+    return dt1.get_recent_data()
 
 if __name__ == '__main__':
+    # why is there a second tiny tk window?
     root = tk.Tk()
     MainApplication(root).pack(side="top", fill="both", expand=True)
+
+    dt1 = gui_datathread.DataThread(1, "dt for graph1", test=True)
+    dt1.start()
+
     root.mainloop()
 
-
-
-
+    dt1.stop()
+    dt1.join()

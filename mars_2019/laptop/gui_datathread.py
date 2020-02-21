@@ -21,15 +21,16 @@ import grpc
 import threading
 import time
 import random
+import numpy as np
 
 
 class DataThread(threading.Thread):
-	def __init__(self, threadID, name, counter):
+	def __init__(self, threadID, name, test=False):
 		threading.Thread.__init__(self)
-		self.TESTING = False
+		self.TESTING = test
 		self.threadID = threadID
 		self.name = name
-		self.counter = counter
+		# self.counter = counter
 
 		if not self.TESTING:
 			self.channel = grpc.insecure_channel('172.27.39.1:50051')
@@ -44,12 +45,10 @@ class DataThread(threading.Thread):
 	def run(self):
 		# print("starting thread")
 		while not self.stopped:
-			self.recent_data = next(self.gen) # TODO divide by 4
-			# self.recent_data = next(fake_generator())
+			self.recent_data = next(self.gen)/4
 			# time.sleep(1)
 
 	def get_recent_data(self):
-		# print(self.recent_data)
 		return self.recent_data
 
 	def stop(self):
@@ -60,7 +59,7 @@ class DataThread(threading.Thread):
 
 	def fake_generator(self):
 		while not self.stopped:
-			yield [random.randint(0, 15) for i in range(8)]
+			yield np.array([random.randint(0, 8)*4 for i in range(8)])
 			time.sleep(0.01)
 
 
@@ -73,7 +72,7 @@ if __name__ == '__main__':
 	root = tk.Tk()
 	root.geometry("{}x{}".format(root_width, root_height))
 
-	dt = DataThread(1, "dt1", 1)
+	dt = DataThread(1, "dt", test=True)
 	dt.start()
 
 	graph1 = LineGraph(root, animate)

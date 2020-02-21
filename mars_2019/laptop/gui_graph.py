@@ -11,14 +11,14 @@ class LineGraph(tk.Frame):
 	def __init__(self, parent, get_data_function):
 		tk.Frame.__init__(self, parent)
 
-		self.datalen = 30 # how many data points are displayed on the graph
+		self.datalen = 100 # how many data points are displayed on the graph
 		self.datacolumns = 8 # number of series to graph (8 for 8 motor currents)
 		self.data = deque([[0]*self.datacolumns for i in range(self.datalen)], maxlen=self.datalen)
 
-		self.fig = plt.Figure(figsize=(6,5), dpi=100)
+		self.fig = plt.Figure()#figsize=(6,5), dpi=100)
 		self.ax = self.fig.add_subplot(111)
 		self.ax.set_title('X vs. Y')
-		self.ax.axis([0, self.datalen, 0, 15])
+		self.ax.axis([0, self.datalen, 0, 8])
 
 		self.canvas = FigureCanvasTkAgg(self.fig, parent)
 		self.canvas.get_tk_widget().pack() #side=tk.LEFT, fill=tk.BOTH)
@@ -30,7 +30,7 @@ class LineGraph(tk.Frame):
 
 	def animate(b, tick, data, plot, func):
 		new_val = func(tick)
-		if(new_val == None):
+		if(new_val is None):
 			return
 		data.append(new_val)
 

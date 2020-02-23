@@ -1,6 +1,6 @@
-from ..utils.protocol import var_len_proto_send, var_len_proto_recv
+from utils.protocol import var_len_proto_send, var_len_proto_recv
+from utils.non_blocking import NBInput
 import struct
-from ..utils.non_blocking import NBInput
 import matplotlib.pyplot as plt
 import time
 import serial

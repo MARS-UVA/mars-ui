@@ -1,3 +1,7 @@
+import gui_datathread
+import gui_graph
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
 
@@ -8,11 +12,7 @@ import time
 
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
 
-from . import gui_graph
-from . import gui_datathread
 
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -33,9 +33,9 @@ class MainApplication(tk.Frame):
 
         # Add the three main Frames
         pad = 10
-        data_panel = tk.Frame(master, bg = "#F7F7F7", width=200, height=master.winfo_height()-pad)
-        actions_panel = tk.Frame(master, width=200, bg = "#F7F7F7", height=master.winfo_height()-pad)
-        graph_panel = tk.Frame(master, width=200, bg = "#F7F7F7", height=master.winfo_height()-pad)
+        data_panel = tk.Frame(master, bg="#F7F7F7", width=200, height=master.winfo_height()-pad)
+        actions_panel = tk.Frame(master, width=200, bg="#F7F7F7", height=master.winfo_height()-pad)
+        graph_panel = tk.Frame(master, width=200, bg="#F7F7F7", height=master.winfo_height()-pad)
 
         data_panel.grid(row=0, column=0, sticky="nsew")
         actions_panel.grid(row=0, column=1, sticky="nsew")
@@ -53,9 +53,9 @@ class MainApplication(tk.Frame):
         l2 = ttk.Label(actions_panel, text="Actions", style="BW.TLabel")
         l3 = ttk.Label(graph_panel, text="Graphs", style="BW.TLabel")
 
-        l1.pack(side="top", pady=(50,25))
-        l2.pack(side="top", pady=(50,25))
-        l3.pack(side="top", pady=(50,25))
+        l1.pack(side="top", pady=(50, 25))
+        l2.pack(side="top", pady=(50, 25))
+        l3.pack(side="top", pady=(50, 25))
 
         # Data Tabs
         tab_parent = ttk.Notebook(data_panel)
@@ -110,9 +110,9 @@ class MainApplication(tk.Frame):
         b2 = ttk.Button(actions_panel, text="Dump", command=callback2, width=35)
         b3 = ttk.Button(actions_panel, text="Action 3", command=callback3, width=35)
 
-        b1.pack(side = tk.TOP, pady =(15,25), padx=10)
-        b2.pack(side = tk.TOP, pady =20, padx=10)
-        b3.pack(side = tk.TOP, pady =20, padx=10)
+        b1.pack(side=tk.TOP, pady=(15, 25), padx=10)
+        b2.pack(side=tk.TOP, pady=20, padx=10)
+        b3.pack(side=tk.TOP, pady=20, padx=10)
 
         # Graph Tabs
         tab_parent_graph = ttk.Notebook(graph_panel)
@@ -136,30 +136,31 @@ def fake_generator(columns):
         yield np.array([random.randint(0, 20) for i in range(columns)])
         time.sleep(0.02)
 
+
 def graph1_data_animate(tick):
     return dt1.get_recent_data()/4
+
 
 if __name__ == '__main__':
     root = tk.Tk()
 
     style = ttk.Style()
     style.configure("TButton", font="Tahoma 18")
-    #style.configure("button.bold, font=("Tahoma", 17, "bold"))
+    # style.configure("button.bold, font=("Tahoma", 17, "bold"))
     style.configure("BW.TLabel", foreground="black", background="white", font=("Tahoma 24"))
 
-    MainApplication(root)#.pack(side="top", fill="both", expand=True)
+    MainApplication(root)  # .pack(side="top", fill="both", expand=True)
 
     # channel = grpc.insecure_channel('172.27.39.1:50051')
-	# stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+    # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
     # gen = rpc_client.stream_motor_current(stub)
     gen = fake_generator(8)
     dt1 = gui_datathread.DataThread("dt for graph1", gen)
     dt1.start()
 
-
     root.mainloop()
 
-    # after graph is closed: 
+    # after graph is closed:
     # channel.close()
     dt1.stop()
     dt1.join()

@@ -2,8 +2,7 @@ import grpc
 import cv2
 import numpy as np
 
-from .protos import jetsonrpc_pb2_grpc
-from .protos import jetsonrpc_pb2
+from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 import typing
 import struct
 

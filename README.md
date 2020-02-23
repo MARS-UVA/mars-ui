@@ -2,6 +2,14 @@
 
 Codebase for the MARS club @ UVA
 
+## Better Autocompletion on VSCode
+
+Create a workspace setting and add the following line to it (remember to change `/absolute/path/to/laptop/folder`!)
+
+```json
+"python.autoComplete.extraPaths": ["/absolute/path/to/laptop/folder"]
+```
+
 ## Setup Manual Control
 
 Launch the server script on Jetson nano

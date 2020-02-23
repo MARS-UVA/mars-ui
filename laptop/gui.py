@@ -128,14 +128,12 @@ class MainApplication(tk.Frame):
             c = ttk.Checkbutton(graph1_checks, text="Series " + str(i+1) + " ", variable=graph1_checks_vars[i])
             c.grid(row=0, column=i)
 
-        graph1_graph = gui_graph.LineGraph(graph1, (lambda: 
-            np.ma.masked_array(threads["stream_motor_current"].get_recent_data()/4, mask=[0 for v in graph1_checks_vars]) # this is broken
-        ))
-        
+        graph1_graph = gui_graph.LineGraph(graph1, lambda:
+            np.array([data/4 if var.get() == 1 else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data(), graph1_checks_vars)])
+        )
+
         graph1_graph.ax.set_title("Motor Currents")
-        # graph1_child_check.pack()
         graph1_checks.pack(side=tk.TOP)
-        # graph1_graph.pack(side=tk.BOTTOM)
 
         graph2 = tk.Frame(tab_parent_graph, background="white")
         graph3 = tk.Frame(tab_parent_graph, background="white")
@@ -146,9 +144,9 @@ class MainApplication(tk.Frame):
         tab_parent_graph.pack(expand=1, fill='both')
 
 
-def fake_generator(columns):
+def fake_generator(columns, max=10): # used as a replacement for the generators from rcp_client.py
     while True:
-        yield np.array([random.randint(0, 20) for i in range(columns)])
+        yield np.array([random.randint(0, max) for i in range(columns)])
         time.sleep(0.02)
 
 def updateDataPanel():
@@ -157,12 +155,11 @@ def updateDataPanel():
         # Update labels 2-8
 
 if __name__ == '__main__':
-    # datathreads
     # channel = grpc.insecure_channel('172.27.39.1:50051')
     # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
     # gen = rpc_client.stream_motor_current(stub)
     threads = {}
-    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8)) # 8 columns of data for the 8 motors
+    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8, max=40)) # 8 columns of fake data for the 8 motors
     threads["stream_motor_current"].start()
 
 
@@ -177,7 +174,7 @@ if __name__ == '__main__':
     app.after(100, updateDataPanel)
     root.mainloop()
 
-    # after graph is closed:
+    # after ui is closed:
     # channel.close()
     for k in threads.keys():
         threads[k].stop()

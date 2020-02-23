@@ -3,21 +3,25 @@ from tkinter import ttk
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random
+import time
 
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from . import gui_graph
+from . import gui_datathread
+
 class MainApplication(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.parent = parent
+    def __init__(self, master, *args, **kwargs):
+        tk.Frame.__init__(self, master, *args, **kwargs)
 
         master_pad = 10
-        master = tk.Tk()
+        # master = tk.Tk()
         master.title("MARS Robot Interface")
-        master._geom='200x200+0+0'
+        # master._geom='200x200+0+0'
         master.geometry("{0}x{1}+0+0".format(
             master.winfo_screenwidth()-master_pad, master.winfo_screenheight()-master_pad))
         master.grid_columnconfigure(0, weight=1)
@@ -42,9 +46,12 @@ class MainApplication(tk.Frame):
         graph_panel.pack_propagate(0)
 
         # A label for each Frame
-        l1 = tk.Label(data_panel, text="Data", bg = "#F7F7F7", font=("Tahoma", 40))
-        l2 = tk.Label(actions_panel, text="Actions", bg = "#F7F7F7", font=("Tahoma", 40))
-        l3 = tk.Label(graph_panel, text="Graphs", bg = "#F7F7F7", font=("Tahoma", 40))
+        # l1 = ttk.Label(data_panel, text="Data", bg="#F7F7F7", font=("Tahoma", 40))
+        # l2 = ttk.Label(actions_panel, text="Actions", bg="#F7F7F7", font=("Tahoma", 40))
+        # l3 = ttk.Label(graph_panel, text="Graphs", bg="#F7F7F7", font=("Tahoma", 40))
+        l1 = ttk.Label(data_panel, text="Data", style="BW.TLabel")
+        l2 = ttk.Label(actions_panel, text="Actions", style="BW.TLabel")
+        l3 = ttk.Label(graph_panel, text="Graphs", style="BW.TLabel")
 
         l1.pack(side="top", pady=(50,25))
         l2.pack(side="top", pady=(50,25))
@@ -96,9 +103,12 @@ class MainApplication(tk.Frame):
             # Do something
             print("Callback 3 Clicked!")
 
-        b1 = tk.Button(actions_panel, text="Set Arm Angle: 45", font=("Tahoma", 17, 'bold'), command=callback1, height = 5, width = 35)
-        b2 = tk.Button(actions_panel, text="Dump", font=("Tahoma", 17, 'bold'), command=callback2, height = 5, width = 35)
-        b3 = tk.Button(actions_panel, text="Action 3", font=("Tahoma", 17, 'bold'), command=callback3, height = 5, width = 35)
+        # b1 = tk.Button(actions_panel, text="Set Arm Angle: 45", font=("Tahoma", 17, 'bold'), command=callback1, height = 5, width = 35)
+        # b2 = tk.Button(actions_panel, text="Dump", font=("Tahoma", 17, 'bold'), command=callback2, height = 5, width = 35)
+        # b3 = tk.Button(actions_panel, text="Action 3", font=("Tahoma", 17, 'bold'), command=callback3, height = 5, width = 35)
+        b1 = ttk.Button(actions_panel, text="Set Arm Angle: 45", command=callback1, width=35)
+        b2 = ttk.Button(actions_panel, text="Dump", command=callback2, width=35)
+        b3 = ttk.Button(actions_panel, text="Action 3", command=callback3, width=35)
 
         b1.pack(side = tk.TOP, pady =(15,25), padx=10)
         b2.pack(side = tk.TOP, pady =20, padx=10)
@@ -107,6 +117,11 @@ class MainApplication(tk.Frame):
         # Graph Tabs
         tab_parent_graph = ttk.Notebook(graph_panel)
         graph1 = tk.Frame(tab_parent_graph, background="white")
+
+        graph1_graph = gui_graph.LineGraph(graph1, graph1_data_animate)
+        graph1_graph.ax.set_title("Motor Currents")
+        # graph1_child_check.pack()
+
         graph2 = tk.Frame(tab_parent_graph, background="white")
         graph3 = tk.Frame(tab_parent_graph, background="white")
 
@@ -115,14 +130,36 @@ class MainApplication(tk.Frame):
         tab_parent_graph.add(graph3, text="Graph 3")
         tab_parent_graph.pack(expand=1, fill='both')
 
-        
-        
+
+def fake_generator(columns):
+    while True:
+        yield np.array([random.randint(0, 20) for i in range(columns)])
+        time.sleep(0.02)
+
+def graph1_data_animate(tick):
+    return dt1.get_recent_data()/4
 
 if __name__ == '__main__':
     root = tk.Tk()
-    MainApplication(root).pack(side="top", fill="both", expand=True)
+
+    style = ttk.Style()
+    style.configure("TButton", font="Tahoma 18")
+    #style.configure("button.bold, font=("Tahoma", 17, "bold"))
+    style.configure("BW.TLabel", foreground="black", background="white", font=("Tahoma 24"))
+
+    MainApplication(root)#.pack(side="top", fill="both", expand=True)
+
+    # channel = grpc.insecure_channel('172.27.39.1:50051')
+	# stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+    # gen = rpc_client.stream_motor_current(stub)
+    gen = fake_generator(8)
+    dt1 = gui_datathread.DataThread("dt for graph1", gen)
+    dt1.start()
+
+
     root.mainloop()
 
-
-
-
+    # after graph is closed: 
+    # channel.close()
+    dt1.stop()
+    dt1.join()

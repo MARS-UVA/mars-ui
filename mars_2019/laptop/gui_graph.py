@@ -1,4 +1,6 @@
-# !/usr/bin/python3
+"""
+An animated matplotlib graph
+"""
 
 import tkinter as tk
 import matplotlib.pyplot as plt

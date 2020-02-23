@@ -32,6 +32,12 @@ def stream_motor_current(stub: STUB, rate=30):
         yield arr_uint8v.astype("float32")
 
 
+def stream_arm_angle(stub: STUB, rate=30):
+    response = stub.StreamAngle(jetsonrpc_pb2.Rate(rate=rate))
+    for item in response:
+        yield item.angle
+
+
 def send_motor_cmd(stub: STUB, gen):
     return stub.StreamMotorCurrent(gen)
 
@@ -46,7 +52,7 @@ if __name__ == '__main__':
         print("Connected to", args.host)
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
-        data = stream_motor_current(stub)
+        data = stream_arm_angle(stub)
         counter = 0
         for item in data:
             print(item)

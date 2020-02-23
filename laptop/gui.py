@@ -116,11 +116,22 @@ class MainApplication(tk.Frame):
 
         # Graph Tabs
         tab_parent_graph = ttk.Notebook(graph_panel)
-        graph1 = tk.Frame(tab_parent_graph, background="white")
 
-        graph1_graph = gui_graph.LineGraph(graph1, graph1_data_animate)
+        graph1 = tk.Frame(tab_parent_graph, background="white")
+        graph1_checks = tk.Frame(graph1, background="pink")
+        graph1_checks_vars = [tk.IntVar() for i in range(8)]
+        for i in range(len(graph1_checks_vars)):
+            c = ttk.Checkbutton(graph1_checks, text="Series " + str(i+1) + " ", variable=graph1_checks_vars[i])
+            c.grid(row=0, column=i)
+
+        graph1_graph = gui_graph.LineGraph(graph1, (lambda: 
+            np.ma.masked_array(threads["stream_motor_current"].get_recent_data()/4, mask=[0 for v in graph1_checks_vars]) # this is broken
+        ))
+        
         graph1_graph.ax.set_title("Motor Currents")
         # graph1_child_check.pack()
+        graph1_checks.pack(side=tk.TOP)
+        # graph1_graph.pack(side=tk.BOTTOM)
 
         graph2 = tk.Frame(tab_parent_graph, background="white")
         graph3 = tk.Frame(tab_parent_graph, background="white")
@@ -137,11 +148,16 @@ def fake_generator(columns):
         time.sleep(0.02)
 
 
-def graph1_data_animate(tick):
-    return dt1.get_recent_data()/4
-
-
 if __name__ == '__main__':
+    # datathreads
+    # channel = grpc.insecure_channel('172.27.39.1:50051')
+    # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+    # gen = rpc_client.stream_motor_current(stub)
+    threads = {}
+    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8)) # 8 columns of data for the 8 motors
+    threads["stream_motor_current"].start()
+
+
     root = tk.Tk()
 
     style = ttk.Style()
@@ -150,17 +166,10 @@ if __name__ == '__main__':
     style.configure("BW.TLabel", foreground="black", background="white", font=("Tahoma 24"))
 
     MainApplication(root)  # .pack(side="top", fill="both", expand=True)
-
-    # channel = grpc.insecure_channel('172.27.39.1:50051')
-    # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-    # gen = rpc_client.stream_motor_current(stub)
-    gen = fake_generator(8)
-    dt1 = gui_datathread.DataThread("dt for graph1", gen)
-    dt1.start()
-
     root.mainloop()
 
     # after graph is closed:
     # channel.close()
-    dt1.stop()
-    dt1.join()
+    for k in threads.keys():
+        threads[k].stop()
+        threads[k].join()

@@ -31,7 +31,7 @@ class LineGraph(tk.Frame):
 		self.anim = animation.FuncAnimation(self.fig, self.animate, fargs=(self.data, self.plot, get_data_function), interval=1, blit=False) # change graphing interval here
 
 	def animate(b, tick, data, plot, func):
-		new_val = func(tick)
+		new_val = func()
 		if(new_val is None):
 			return
 		data.append(new_val)

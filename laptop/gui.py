@@ -87,6 +87,7 @@ class MainApplication(tk.Frame):
         self.lData2_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Create labels 2-8, use better names
+        # Labels need to be instance variables so they can be accessed by updateDataPanel
 
         # Data3 tab lebels
         lData3_1 = tk.Label(data3, text="Basket Angle: 15°", font=("Tahoma", 25))

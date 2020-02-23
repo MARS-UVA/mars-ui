@@ -18,6 +18,8 @@ class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
 
+        dataThreads = {};
+
         master_pad = 10
         # master = tk.Tk()
         master.title("MARS Robot Interface")
@@ -135,14 +137,13 @@ def fake_generator(columns):
     while True:
         yield np.array([random.randint(0, 20) for i in range(columns)])
         time.sleep(0.02)
-
-
-def graph1_data_animate(tick):
-    return dt1.get_recent_data()/4
+        
 
 
 if __name__ == '__main__':
     root = tk.Tk()
+
+    dataThreads = {}
 
     style = ttk.Style()
     style.configure("TButton", font="Tahoma 18")
@@ -154,13 +155,16 @@ if __name__ == '__main__':
     # channel = grpc.insecure_channel('172.27.39.1:50051')
     # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
     # gen = rpc_client.stream_motor_current(stub)
+
     gen = fake_generator(8)
     dt1 = gui_datathread.DataThread("dt for graph1", gen)
     dt1.start()
+    dataThreads["Fake"] = dt1
 
     root.mainloop()
 
     # after graph is closed:
     # channel.close()
-    dt1.stop()
-    dt1.join()
+    for key in dataThreads.keys():
+        dataThreads.get(key).stop()
+        dataThreads.get(key).join()

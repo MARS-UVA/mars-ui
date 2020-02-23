@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import time
+from datetime import datetime
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -79,15 +80,18 @@ class MainApplication(tk.Frame):
         lData1_3.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Data2 tab labels
-        lData2_1 = tk.Label(data2, text="Motor 1 Speed: xx rpm", font=("Tahoma", 25))
-        lData2_1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.lData2_1 = tk.Label(data2, text="Motor 1 Speed: xx rpm", font=("Tahoma", 25))
+        self.lData2_1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        lData2_2 = tk.Label(data2, text="Motor 2 Speed: xx rpm", font=("Tahoma", 25))
-        lData2_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        self.lData2_2 = tk.Label(data2, text="Motor 2 Speed: xx rpm", font=("Tahoma", 25))
+        self.lData2_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+
+        # Create labels 2-8, use better names
 
         # Data3 tab lebels
         lData3_1 = tk.Label(data3, text="Basket Angle: 15°", font=("Tahoma", 25))
         lData3_1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+            
 
         # Buttons on Actions Frame
         def callback1():
@@ -147,6 +151,10 @@ def fake_generator(columns):
         yield np.array([random.randint(0, 20) for i in range(columns)])
         time.sleep(0.02)
 
+def updateDataPanel():
+        app.lData2_1['text'] = threads["stream_motor_current"].get_recent_data()/4
+        app.after(100, updateDataPanel)
+        # Update labels 2-8
 
 if __name__ == '__main__':
     # datathreads
@@ -165,7 +173,8 @@ if __name__ == '__main__':
     # style.configure("button.bold, font=("Tahoma", 17, "bold"))
     style.configure("BW.TLabel", foreground="black", background="white", font=("Tahoma 24"))
 
-    MainApplication(root)  # .pack(side="top", fill="both", expand=True)
+    app = MainApplication(root)  # .pack(side="top", fill="both", expand=True)
+    app.after(100, updateDataPanel)
     root.mainloop()
 
     # after graph is closed:

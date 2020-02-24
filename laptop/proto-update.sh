@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir -p laptop/protos
-cd laptop/protos
+mkdir -p protos
+cd protos
 rm jetsonrpc.proto
 wget https://raw.githubusercontent.com/hanzhi713/mars-ros/master/src/rpc-server/jetsonrpc.proto
 cd ..

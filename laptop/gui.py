@@ -73,18 +73,18 @@ class MainApplication(tk.Frame):
         lData1_1 = tk.Label(data1, text="Arm Angle: 90°", font=("Tahoma", 25))
         lData1_1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        lData1_2 = tk.Label(data1, text="Arm Status: True", font=("Tahoma", 25))
-        lData1_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        # lData1_2 = tk.Label(data1, text="Arm Status: True", font=("Tahoma", 25))
+        # lData1_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
 
         lData1_3 = tk.Label(data1, text="Other Data: xx", font=("Tahoma", 25))
-        lData1_3.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        lData1_3.grid(row=2, column=0, padx=10, pady=10)
 
         # Data2 tab labels
-        self.lData2_1 = tk.Label(data2, text="Motor 1 Speed: xx rpm", font=("Tahoma", 25))
-        self.lData2_1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.lData2_title = tk.Label(data2, text="Motor Currents", font=("Pitch", 25))
+        self.lData2_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        self.lData2_2 = tk.Label(data2, text="Motor 2 Speed: xx rpm", font=("Tahoma", 25))
-        self.lData2_2.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        self.lData2_1 = tk.Label(data2, text="Motor 1 Speed: xx rpm", font=("Pitch", 20), justify=tk.LEFT)
+        self.lData2_1.grid(row=1, column=0, padx=10, pady=10)
 
         # Create labels 2-8, use better names
         # Labels need to be instance variables so they can be accessed by updateDataPanel
@@ -95,10 +95,9 @@ class MainApplication(tk.Frame):
             
 
         # Buttons on Actions Frame
-        def callback1():
-            # Do something
-            lData1_1['text'] = "Arm Angle: 45°"
-            print("Callback 1 Clicked!")
+        def stopMotorCurrentThread():
+            threads["stream_motor_current"].stop()
+
 
         def callback2():
             # Do something
@@ -111,7 +110,7 @@ class MainApplication(tk.Frame):
         # b1 = tk.Button(actions_panel, text="Set Arm Angle: 45", font=("Tahoma", 17, 'bold'), command=callback1, height = 5, width = 35)
         # b2 = tk.Button(actions_panel, text="Dump", font=("Tahoma", 17, 'bold'), command=callback2, height = 5, width = 35)
         # b3 = tk.Button(actions_panel, text="Action 3", font=("Tahoma", 17, 'bold'), command=callback3, height = 5, width = 35)
-        b1 = ttk.Button(actions_panel, text="Set Arm Angle: 45", command=callback1, width=35)
+        b1 = ttk.Button(actions_panel, text="Stop Motor Current Thread", command=stopMotorCurrentThread, width=35)
         b2 = ttk.Button(actions_panel, text="Dump", command=callback2, width=35)
         b3 = ttk.Button(actions_panel, text="Action 3", command=callback3, width=35)
 
@@ -151,9 +150,20 @@ def fake_generator(columns, max=10): # used as a replacement for the generators 
         time.sleep(0.02)
 
 def updateDataPanel():
-        app.lData2_1['text'] = threads["stream_motor_current"].get_recent_data()/4
-        app.after(100, updateDataPanel)
-        # Update labels 2-8
+    if threads["stream_motor_current"].isRunning():
+        currents = threads["stream_motor_current"].get_recent_data()/4
+        text = formatMotorCurrents(currents)
+        app.lData2_1['text'] = text
+        app.after(1000, updateDataPanel)
+    else:
+        app.lData2_1['text'] = "Motor current thread is not running"
+    # Update labels 2-8
+
+def formatMotorCurrents(currents):
+    s = ""
+    for i in range(1,9):
+        s += "Motor " + str(i) + ":     " + "{:0<6.3f}".format(currents[i-1]) + " A\n\n"
+    return s
 
 if __name__ == '__main__':
     # channel = grpc.insecure_channel('172.27.39.1:50051')

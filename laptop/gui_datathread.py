@@ -25,7 +25,6 @@ class DataThread(threading.Thread):
         self.stopped = False
 
     def run(self):
-        # print("starting thread")
         while not self.stopped:
             self.recent_data = next(self.gen)
             # time.sleep(1)
@@ -36,6 +35,9 @@ class DataThread(threading.Thread):
     def stop(self):
         # print("stopping thread")
         self.stopped = True
+
+    def isRunning(self):
+        return not self.stopped
 
 
 """

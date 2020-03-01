@@ -22,22 +22,34 @@ class DataThread(threading.Thread):
         self.gen = gen
         self.recent_data = None
 
+        self.event = threading.Event()
+        self.paused = False
         self.stopped = False
 
     def run(self):
         while not self.stopped:
             self.recent_data = next(self.gen)
+            if self.paused:
+                self.event.wait()
             # time.sleep(1)
 
     def get_recent_data(self):
         return self.recent_data
 
-    def stop(self):
-        # print("stopping thread")
-        self.stopped = True
+    def stopCollection(self):
+        self.event.clear()
+        self.paused = True
 
-    def isRunning(self):
-        return not self.stopped
+    def resumeCollection(self):
+        self.event.set()
+        self.paused = False
+
+    def isCollecting(self):
+        return (not self.stopped) and (not self.paused)
+
+    def stop(self):
+        self.event.set()
+        self.stopped = True
 
 
 """

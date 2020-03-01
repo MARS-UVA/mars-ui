@@ -83,8 +83,11 @@ class MainApplication(tk.Frame):
         self.lData2_title = tk.Label(data2, text="Motor Currents", font=("Pitch", 25))
         self.lData2_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
+        self.lData2_status = tk.Label(data2, text="STATUS: Collectind Data", font='Pitch 20 bold')
+        self.lData2_status.grid(row=1, column=0, padx=10, pady=3)
+
         self.lData2_1 = tk.Label(data2, text="Motor 1 Speed: xx rpm", font=("Pitch", 20), justify=tk.LEFT)
-        self.lData2_1.grid(row=1, column=0, padx=10, pady=10)
+        self.lData2_1.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Create labels 2-8, use better names
         # Labels need to be instance variables so they can be accessed by updateDataPanel
@@ -95,8 +98,15 @@ class MainApplication(tk.Frame):
             
 
         # Buttons on Actions Frame
-        def stopMotorCurrentThread():
-            threads["stream_motor_current"].stop()
+        def toggleMotorCurrentThread():
+            if threads["stream_motor_current"].isCollecting():
+                threads["stream_motor_current"].stopCollection()
+                b1['text'] = "Resume Motor Data Collection"
+            elif "stream_motor_current" in threads:
+                threads["stream_motor_current"].resumeCollection()
+                b1['text'] = "Pause Motor Data Collection"
+            else:
+                print("Stream_motor_current not in threads")
 
 
         def callback2():
@@ -110,7 +120,7 @@ class MainApplication(tk.Frame):
         # b1 = tk.Button(actions_panel, text="Set Arm Angle: 45", font=("Tahoma", 17, 'bold'), command=callback1, height = 5, width = 35)
         # b2 = tk.Button(actions_panel, text="Dump", font=("Tahoma", 17, 'bold'), command=callback2, height = 5, width = 35)
         # b3 = tk.Button(actions_panel, text="Action 3", font=("Tahoma", 17, 'bold'), command=callback3, height = 5, width = 35)
-        b1 = ttk.Button(actions_panel, text="Stop Motor Current Thread", command=stopMotorCurrentThread, width=35)
+        b1 = ttk.Button(actions_panel, text="Pause Motor Data Collection", command=toggleMotorCurrentThread, width=35)
         b2 = ttk.Button(actions_panel, text="Dump", command=callback2, width=35)
         b3 = ttk.Button(actions_panel, text="Action 3", command=callback3, width=35)
 
@@ -150,14 +160,15 @@ def fake_generator(columns, max=10): # used as a replacement for the generators 
         time.sleep(0.02)
 
 def updateDataPanel():
-    if threads["stream_motor_current"].isRunning():
+    if threads["stream_motor_current"].isCollecting():
         currents = threads["stream_motor_current"].get_recent_data()/4
+        app.lData2_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.lData2_1['text'] = text
-        app.after(1000, updateDataPanel)
     else:
-        app.lData2_1['text'] = "Motor current thread is not running"
-    # Update labels 2-8
+        app.lData2_status['text'] = "STATUS: Paused"
+        app.lData2_1['text'] = ""
+    app.after(1000, updateDataPanel)
 
 def formatMotorCurrents(currents):
     s = ""

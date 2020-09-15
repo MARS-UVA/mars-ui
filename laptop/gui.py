@@ -21,7 +21,7 @@ class MainApplication(tk.Frame):
         master_pad = 10
         master.title("MARS Robot Interface")
         master.geometry("{0}x{1}+0+0".format(
-            master.winfo_screenwidth()-master_pad, 
+            master.winfo_screenwidth()-master_pad,
             master.winfo_screenheight()-master_pad))
         master.grid_columnconfigure(0, weight=1)
         master.grid_columnconfigure(1, weight=1)
@@ -36,7 +36,7 @@ class MainApplication(tk.Frame):
         data_panel.grid(row=0, column=0, sticky="nsew")
 
         # Tells tkinter not to rescale the frame to the size of its components.
-        data_panel.pack_propagate(0) 
+        data_panel.pack_propagate(0)
 
         actions_panel = tk.Frame(
             master, width=200, bg="#F7F7F7", height=master.winfo_height()-10)
@@ -51,10 +51,10 @@ class MainApplication(tk.Frame):
         # -------------------------------------------------------------------------
         # Data Panel
         #
-        # This panel will be used to display raw data in real time. The only 
-        # tab on this panel that has been implemented as of 3/5/20 is Motor 
+        # This panel will be used to display raw data in real time. The only
+        # tab on this panel that has been implemented as of 3/5/20 is Motor
         # Current.
-        # 
+        #
         # Naming convention: data_<tab name (if any)>_<component name>
 
         # Title
@@ -74,43 +74,57 @@ class MainApplication(tk.Frame):
         data_notebook.add(data_3_frame, text="Basket")
         data_notebook.pack(expand=1, fill='both')
 
-        # Motor Currents tab. All labels are definied as instance variables 
+        # Motor Currents tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
         self.data_mc_title = tk.Label(
             data_mc_frame, text="Motor Currents", font=("Pitch", 25))
-        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # The .grid function is used to designate where this label is located
 
         self.data_mc_status = tk.Label(
-            data_mc_frame, 
-            text="STATUS: Collecting Data", 
+            data_mc_frame,
+            text="STATUS: Collecting Data",
             font='Pitch 20 bold')
-        self.data_mc_status.grid(row=1, column=0, padx=10, pady=3)
+        self.data_mc_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
 
         self.data_mc_body = tk.Label(
-            data_mc_frame, 
-            text="Motor 1 Speed: xx rpm", 
-            font=("Pitch", 20), 
+            data_mc_frame,
+            text="Motor 1 Speed: xx rpm",
+            font=("Pitch", 20),
             justify=tk.LEFT)
         self.data_mc_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
-        # Dummy labels for tab_2 and tab_3. These are only placeholders.
+        # Arm Status tab. All labels are defined as instance variables
+        # so they can be accessed by updateDataPanel().
         self.data_2_title = ttk.Label(
-            data_2_frame, text="Arm Angle: 90°", font=("Tahoma", 25))
+            data_2_frame, text="Arm Status", font=("Pitch", 25))
         self.data_2_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        self.data_2_body = ttk.Label(
-            data_2_frame, text="Other Data: xx", font=("Tahoma", 25))
-        self.data_2_body.grid(row=2, column=0, padx=10, pady=10)
+        self.data_2_status = tk.Label(
+            data_2_frame,
+            text="STATUS: Collecting Data",
+            font='Pitch 20 bold')
+        self.data_2_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
+
+        self.data_2_body = tk.Label(
+            data_2_frame,
+            text="Motor 1 Speed: xx rpm",
+            font=("Pitch", 20),
+            justify=tk.LEFT)
+        self.data_2_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+
+        # self.data_2_body = ttk.Label(
+        #     data_2_frame, text="Length of Arm", font=("Tahoma", 25))
+        # self.data_2_body.grid(row=2, column=0, padx=10, pady=10)
 
         self.data_3_title = ttk.Label(
             data_3_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
         self.data_3_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
-            
+
         # -------------------------------------------------------------------------
         # Actions Panel
         #
-        # This panel will contain a set of action buttons to control the robot 
-        # and/or the UI. The only button that has been implemented as of 3/5/20 
+        # This panel will contain a set of action buttons to control the robot
+        # and/or the UI. The only button that has been implemented as of 3/5/20
         # is actions_mc, which pauses and resumes Motor Current data collection.
         #
         # Naming convention: actions_<component name>
@@ -119,7 +133,7 @@ class MainApplication(tk.Frame):
         actions_title = ttk.Label(actions_panel, text="Actions", style="BW.TLabel")
         actions_title.pack(side="top", pady=(50, 25))
 
-        # Pauses or resumes motor current data collection. Updates the text 
+        # Pauses or resumes motor current data collection. Updates the text
         # on mc_toggle button.
         def toggleMotorCurrentThread():
             if threads["stream_motor_current"].isCollecting():
@@ -130,33 +144,39 @@ class MainApplication(tk.Frame):
                 actions_mc['text'] = "Pause Motor Data Collection"
             else:
                 print("Stream_motor_current not in threads")
+        def toggleArmStatusThread():
+            if threads2["stream_arm_status"].isCollecting():
+                threads2["stream_arm_status"].stopCollection()
+                actions_b2['text'] = "Resume Arm Data Collection"
+            elif "stream_arm_status" in threads2:
+                threads2["stream_arm_status"].resumeCollection()
+                actions_b2['text'] = "Pause Arm Data Collection"
+            else:
+                print("Stream_motor_current not in threads")
 
-        # Dummy callback functions for b2 and b3
-        def callback2():
-            # Do something
-            print("Callback 2 Clicked!")
+        actions_mc = ttk.Button(
+            actions_panel,
+            text="Pause Motor Data Collection",
+            command=toggleMotorCurrentThread,
+            width=35)
+        actions_mc.pack(side=tk.TOP, pady=(15, 25), padx=10)
 
+        actions_b2 = ttk.Button(
+            actions_panel,
+            text="Pause Arm Data Collection",
+            command=toggleArmStatusThread,
+            width=35)
+        actions_b2.pack(side=tk.TOP, pady=20, padx=10)
+
+        # Dummy callback functions for b3
         def callback3():
             # Do something
             print("Callback 3 Clicked!")
 
-        # This button calls toggleMotorCurrentThread when clicked
-        actions_mc = ttk.Button(
-            actions_panel, 
-            text="Pause Motor Data Collection", 
-            command=toggleMotorCurrentThread, 
-            width=35)
-        actions_mc.pack(side=tk.TOP, pady=(15, 25), padx=10)
-        
-        # Dummy buttons. Calls callback2 and callback3, respectively.
-        actions_b2 = ttk.Button(
-            actions_panel, text="Dump", command=callback2, width=35)
-        actions_b2.pack(side=tk.TOP, pady=20, padx=10)
-
         actions_b3 = ttk.Button(
             actions_panel, text="Action 3", command=callback3, width=35)
         actions_b3.pack(side=tk.TOP, pady=20, padx=10)
-        
+
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
@@ -186,22 +206,40 @@ class MainApplication(tk.Frame):
 
         for i in range(len(graphs_mc_vars)):
             c = ttk.Checkbutton(
-                graphs_mc_checks, 
-                text="Series " + str(i+1) + " ", 
+                graphs_mc_checks,
+                text="Series " + str(i+1) + " ",
                 variable=graphs_mc_vars[i])
             c.grid(row=0, column=i)
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
-            graphs_mc_frame, 
-            lambda: np.array([data/4 if var.get() == 1 else 0 for data, 
-            var in zip(threads["stream_motor_current"].get_recent_data(), 
+            graphs_mc_frame,
+            lambda: np.array([data/4 if var.get() == 1 else 0 for data,
+            var in zip(threads["stream_motor_current"].get_recent_data(),
             graphs_mc_vars)])
         )
 
-        graphs_mc_lineGraph.ax.set_title("Motor Currents")
+        graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
 
-# Generate random data. Used as a replacement for the generators 
+        # Robotic Arm Length graph.
+        graphs_2_checks = tk.Frame(graphs_2_frame, background="pink")
+        graphs_2_vars = [tk.IntVar() for i in range(8)]
+
+        for i in range(len(graphs_2_vars)):
+            c = ttk.Checkbutton(
+                graphs_2_checks,
+                text="Series " + str(i+1) + " ",
+                variable=graphs_2_vars[i])
+            c.grid(row=0, column=i)
+
+        graphs_2_lineGraph = gui_graph.LineGraph(
+            graphs_2_frame,
+
+        )
+
+        graphs_2_lineGraph.ax.set_title("Length of Robotic Arm")
+        graphs_2_checks.pack(side=tk.TOP)
+# Generate random data. Used as a replacement for the generators
 # from rcp_client.py
 def fake_generator(columns, max=10):
     while True:
@@ -215,7 +253,21 @@ def updateDataPanel():
         app.data_mc_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.data_mc_body['text'] = text
-    else:
+        # x = []
+        # y = []
+        # currentslist = currents.tolist()
+        # x.append(currentslist.pop())
+        # y.append(currentslist.pop())
+        # print(currentslist)
+    if threads2["stream_arm_status"].isCollecting():
+        armdata = threads2["stream_arm_status"].get_recent_data()/4
+        app.data_2_status['text'] = "STATUS: Collecting Data"
+        text = formatArmStatus(armdata)
+        app.data_2_body['text'] = text
+    elif threads2['stream_arm_status'].stopCollection():
+        app.data_2_status['text'] = "STATUS: Paused"
+        app.data_2_body['text'] = ""
+    elif threads["stream_motor_current"].stopCollection():
         app.data_mc_status['text'] = "STATUS: Paused"
         app.data_mc_body['text'] = ""
     app.after(1000, updateDataPanel)
@@ -228,6 +280,16 @@ def formatMotorCurrents(currents):
         s += "{:0<6.3f}".format(currents[i-1]) + " A\n\n"
     return s
 
+def formatArmStatus(armdata):
+    angle, translation = armdata
+    s = ""
+
+    s += "Arm Angle:     "
+    s += "{:0<6.3f}".format(angle) + " Degrees\n\n"
+    s += "Arm Translation:     "
+    s += "{:0<6.3f}".format(translation) + "  M\n\n"
+    return s
+
 if __name__ == '__main__':
     # channel = grpc.insecure_channel('172.27.39.1:50051')
     # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
@@ -235,6 +297,10 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8, max=40)) # 8 columns of fake data for the 8 motors
     threads["stream_motor_current"].start()
+
+    threads2 = {}
+    threads2["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2, max=40))  # 2 columns of fake data for angle and translation
+    threads2["stream_arm_status"].start()
 
     root = tk.Tk()
 
@@ -251,3 +317,4 @@ if __name__ == '__main__':
     for k in threads.keys():
         threads[k].stop()
         threads[k].join()
+

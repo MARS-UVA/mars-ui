@@ -12,8 +12,9 @@ import gui
 
 
 class LineGraph(tk.Frame):
-	def __init__(self, parent, get_data_function=0):
-		if get_data_function == 0:
+	def __init__(self, parent, get_data_function=None):
+
+		if get_data_function is None:
 			tk.Frame.__init__(self, parent)
 			self.fig = plt.Figure()  # figsize=(6,5), dpi=100)
 			self.ax = self.fig.add_subplot(111)
@@ -26,6 +27,7 @@ class LineGraph(tk.Frame):
 			# self.ax.axis([-10, 10, -10, 10])
 			# self.anim = animation.FuncAnimation(self.fig,self.animate(, interval=1000)
 
+			# TODO I think this sin wave code should be in a "get_data_function" setup, unless it's a temporary placeholder type thing
 
 			x = np.arange(0, 2 * np.pi, .05) # x denotes an array of x values
 			line, = self.ax.plot(np.sin(x), np.sin(x)) # line, creates the line that must be plotted
@@ -43,7 +45,6 @@ class LineGraph(tk.Frame):
 			animation.FuncAnimation(self.fig, animate, np.arange(1, 1000), init_func=init,
 										  interval=30, blit=True)
 			plt.show()
-
 
 
 		else:
@@ -65,27 +66,13 @@ class LineGraph(tk.Frame):
 			# code right below plots a horizontal axis line to fit the screen
 			self.plot = [self.ax.plot([0]*self.datalen)[0] for i in range(self.datacolumns)]
 
-			# self.anim = animation.FuncAnimation(self.fig, self.animate, fargs=(self.data, self.plot, get_data_function), interval=1, blit=False) # change graphing interval here
+			def animate(i, data, plot, func):
+				new_val = func()
+				if(new_val is None):
+					return
+				data.append(new_val)
+			
+				for l, d in zip(plot, np.rot90(data)):
+					l.set_ydata(d)
 
-
-	# def animate(b, tick, data, plot, func):
-	# 	new_val = func()
-	# 	if(new_val is None):
-	# 		return
-	# 	data.append(new_val)
-	#
-	# 	for l, d in zip(plot, np.rot90(data)):
-	# 		l.set_ydata(d)
-
-# def animate(b, tick, gen, data, plot):
-		#new_val = next(gen())
-		#data.append(new_val)
-		#print(list(data))
-		#print()
-		#return
-		#plot.set_ydata(list(data))
-
-# def animate(tick, b, data, plot):
-	# data.extend(next(g)) # g is generator
-	# data.append(int(random.random()*10))
-	# plot.set_ydata(list(data))
+			self.anim = animation.FuncAnimation(self.fig, animate, fargs=(self.data, self.plot, get_data_function), interval=50, blit=False) # change graphing interval here

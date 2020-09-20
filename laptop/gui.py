@@ -213,11 +213,10 @@ class MainApplication(tk.Frame):
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            lambda: np.array([data/4 if var.get() == 1 else 0 for data,
-            var in zip(threads["stream_motor_current"].get_recent_data(),
-            graphs_mc_vars)])
+            # Update function:
+            get_data_function = lambda: np.array([(data-20)/4 if var.get() == 1 else 0
+                for data, var in zip(threads["stream_motor_current"].get_recent_data(), graphs_mc_vars)])
         )
-
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
 
@@ -234,17 +233,17 @@ class MainApplication(tk.Frame):
 
         graphs_2_lineGraph = gui_graph.LineGraph(
             graphs_2_frame,
-
         )
-
         graphs_2_lineGraph.ax.set_title("Length of Robotic Arm")
         graphs_2_checks.pack(side=tk.TOP)
+
+
 # Generate random data. Used as a replacement for the generators
 # from rcp_client.py
 def fake_generator(columns, max=10):
     while True:
         yield np.array([random.randint(0, max) for i in range(columns)])
-        time.sleep(0.02)
+        time.sleep(0.1)
 
 # Updates label text in the data panel. Called every second using app.after()
 def updateDataPanel():

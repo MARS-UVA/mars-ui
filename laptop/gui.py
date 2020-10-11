@@ -145,11 +145,11 @@ class MainApplication(tk.Frame):
             else:
                 print("Stream_motor_current not in threads")
         def toggleArmStatusThread():
-            if threads2["stream_arm_status"].isCollecting():
-                threads2["stream_arm_status"].stopCollection()
+            if threads["stream_arm_status"].isCollecting():
+                threads["stream_arm_status"].stopCollection()
                 actions_b2['text'] = "Resume Arm Data Collection"
-            elif "stream_arm_status" in threads2:
-                threads2["stream_arm_status"].resumeCollection()
+            elif "stream_arm_status" in threads:
+                threads["stream_arm_status"].resumeCollection()
                 actions_b2['text'] = "Pause Arm Data Collection"
             else:
                 print("Stream_motor_current not in threads")
@@ -258,12 +258,12 @@ def updateDataPanel():
         # x.append(currentslist.pop())
         # y.append(currentslist.pop())
         # print(currentslist)
-    if threads2["stream_arm_status"].isCollecting():
-        armdata = threads2["stream_arm_status"].get_recent_data()/4
+    if threads["stream_arm_status"].isCollecting():
+        armdata = threads["stream_arm_status"].get_recent_data()/4
         app.data_2_status['text'] = "STATUS: Collecting Data"
         text = formatArmStatus(armdata)
         app.data_2_body['text'] = text
-    elif threads2['stream_arm_status'].stopCollection():
+    elif threads['stream_arm_status'].stopCollection():
         app.data_2_status['text'] = "STATUS: Paused"
         app.data_2_body['text'] = ""
     elif threads["stream_motor_current"].stopCollection():
@@ -296,10 +296,8 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8, max=40)) # 8 columns of fake data for the 8 motors
     threads["stream_motor_current"].start()
-
-    threads2 = {}
-    threads2["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2, max=40))  # 2 columns of fake data for angle and translation
-    threads2["stream_arm_status"].start()
+    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2, max=40))  # 2 columns of fake data for angle and translation
+    threads["stream_arm_status"].start()
 
     root = tk.Tk()
 
@@ -316,4 +314,3 @@ if __name__ == '__main__':
     for k in threads.keys():
         threads[k].stop()
         threads[k].join()
-

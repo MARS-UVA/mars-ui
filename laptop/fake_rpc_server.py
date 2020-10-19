@@ -1,5 +1,7 @@
 from concurrent import futures
 import logging
+import numpy as np
+import random
 
 import grpc
 
@@ -8,9 +10,11 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
 class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
-    def MotorCurrent(self, request, context):
-        pass
-
+    def StreamMotorCurrent(self, request, context):
+        while True:
+            randoms = np.array([random.randint(0, 10) for i in range(8)], 'uint8') # 8 motors
+            randoms = randoms.view('uint64') # combine into one value, as specified by the proto file
+            yield jetsonrpc_pb2.MotorCurrent(values=randoms[0])
 
 
 def serve():

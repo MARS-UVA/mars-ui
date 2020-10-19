@@ -11,6 +11,10 @@ import random
 import time
 from datetime import datetime
 
+import grpc
+import rpc_client
+from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
+
 import matplotlib
 matplotlib.use("TkAgg")
 
@@ -261,9 +265,7 @@ class MainApplication(tk.Frame):
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            # Update function:
-            get_data_function=lambda: np.array([(data-20)/4 if var.get() == 1 else 0
-                                                for data, var in zip(threads["stream_motor_current"].get_recent_data(), graphs_mc_vars)])
+            get_data_function=lambda: np.array([data if var.get() == 1 else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -298,16 +300,10 @@ def fake_generator(columns, max=10):
 
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
-        currents = threads["stream_motor_current"].get_recent_data()/4
+        currents = threads["stream_motor_current"].get_recent_data()
         app.data_mc_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.data_mc_body['text'] = text
-        # x = []
-        # y = []
-        # currentslist = currents.tolist()
-        # x.append(currentslist.pop())
-        # y.append(currentslist.pop())
-        # print(currentslist)
     if threads["stream_arm_status"].isCollecting():
         armdata = threads["stream_arm_status"].get_recent_data()/4
         app.data_2_status['text'] = "STATUS: Collecting Data"
@@ -332,7 +328,8 @@ def updateDataPanel():
 # Helper method for updateDataPanel().
 
 
-def formatMotorCurrents(currents):
+def formatMotorCurrents(currentsCombined):
+    currents = currentsCombined.view('float32')
     s = ""
     for i in range(1, 9):
         s += "Motor " + str(i) + ":     "
@@ -370,12 +367,11 @@ def formatIMUData(IMU_data):
 
 
 if __name__ == '__main__':
-    # channel = grpc.insecure_channel('172.27.39.1:50051')
-    # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-    # gen = rpc_client.stream_motor_current(stub)
+    channel = grpc.insecure_channel('localhost:50051') # 'localhost' for development, '172.27.39.1' for robot?
+    stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+
     threads = {}
-    threads["stream_motor_current"] = gui_datathread.DataThread(
-        "datathread for stream_motor_current", fake_generator(8, max=40))  # 8 columns of fake data for the 8 motors
+    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", rpc_client.stream_motor_current(stub))
     threads["stream_motor_current"].start()
     threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(
         2, max=40))  # 2 columns of fake data for angle and translation
@@ -395,7 +391,7 @@ if __name__ == '__main__':
     root.mainloop()
 
     # after ui is closed:
-    # channel.close()
     for k in threads.keys():
         threads[k].stop()
         threads[k].join()
+    channel.close()

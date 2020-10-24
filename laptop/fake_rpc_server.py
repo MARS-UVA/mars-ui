@@ -18,7 +18,10 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
             
     def StreamIMUData(self, request, context):
         while True:
-            randomVals = np.array([random.rand()*10 for i in range(6)]) #there are 6 values to be displayed
+            randomVals = []
+            for i in range(6): # six values, 3 for linear acc, 3 for angular acc
+                x = random.rand()* 10 # random float between 0 and 10
+                randomVals.append(x)
             yield jetsonrpc_pb2.IMUData(values = randomVals)
 
 

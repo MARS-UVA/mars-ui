@@ -48,6 +48,7 @@ class DataThread(threading.Thread):
         return (not self.stopped) and (not self.paused)
 
     def stop(self):
+        # self.gen.close() # TODO close the generator?
         self.event.set()
         self.stopped = True
 

@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import random
 import time
 from datetime import datetime
-
+import cv2
+import PIL.Image, PIL.ImageTk
 import matplotlib
 matplotlib.use("TkAgg")
 
@@ -21,8 +22,8 @@ class MainApplication(tk.Frame):
         master_pad = 10
         master.title("MARS Robot Interface")
         master.geometry("{0}x{1}+0+0".format(
-            master.winfo_screenwidth()-master_pad,
-            master.winfo_screenheight()-master_pad))
+            master.winfo_screenwidth() - master_pad,
+            master.winfo_screenheight() - master_pad))
         master.grid_columnconfigure(0, weight=1)
         master.grid_columnconfigure(1, weight=1)
         master.grid_columnconfigure(2, weight=1)
@@ -32,19 +33,19 @@ class MainApplication(tk.Frame):
 
         # There are three main frames: Data Panel, Actions Panel, and Graph Panel.
         data_panel = tk.Frame(
-            master, bg="#F7F7F7", width=200, height=master.winfo_height()-10)
+            master, bg="#F7F7F7", width=200, height=master.winfo_height() - 10)
         data_panel.grid(row=0, column=0, sticky="nsew")
 
         # Tells tkinter not to rescale the frame to the size of its components.
         data_panel.pack_propagate(0)
 
         actions_panel = tk.Frame(
-            master, width=200, bg="#F7F7F7", height=master.winfo_height()-10)
+            master, width=200, bg="#F7F7F7", height=master.winfo_height() - 10)
         actions_panel.grid(row=0, column=1, sticky="nsew")
         actions_panel.pack_propagate(0)
 
         graph_panel = tk.Frame(
-            master, width=200, bg="#F7F7F7", height=master.winfo_height()-10)
+            master, width=200, bg="#F7F7F7", height=master.winfo_height() - 10)
         graph_panel.grid(row=0, column=2, sticky="nsew")
         graph_panel.pack_propagate(0)
 
@@ -66,19 +67,25 @@ class MainApplication(tk.Frame):
 
         # mc stands for motor current
         data_mc_frame = tk.Frame(data_notebook, background="white")
-        data_2_frame = tk.Frame(data_notebook, background="white") # dummy tab
-        data_3_frame = tk.Frame(data_notebook, background="white") # dummy tab
+        data_2_frame = tk.Frame(data_notebook, background="white")  # dummy tab
+        data_3_frame = tk.Frame(data_notebook, background="white")  # dummy tab
+
+        data_cam_frame = tk.Frame(data_notebook, background="white")  # adding a camera tab
 
         data_notebook.add(data_mc_frame, text="Motors Currents")
         data_notebook.add(data_2_frame, text="Arm")
         data_notebook.add(data_3_frame, text="Basket")
+
+        data_notebook.add(data_cam_frame, text="Camera")  # heading to camera tab
+
         data_notebook.pack(expand=1, fill='both')
 
         # Motor Currents tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
         self.data_mc_title = tk.Label(
             data_mc_frame, text="Motor Currents", font=("Pitch", 25))
-        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # The .grid function is used to designate where this label is located
+        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10,
+                                sticky=tk.W)  # The .grid function is used to designate where this label is located
 
         self.data_mc_status = tk.Label(
             data_mc_frame,
@@ -120,6 +127,10 @@ class MainApplication(tk.Frame):
             data_3_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
         self.data_3_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
+        self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
+        self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+
         # -------------------------------------------------------------------------
         # Actions Panel
         #
@@ -154,6 +165,16 @@ class MainApplication(tk.Frame):
             else:
                 print("Stream_motor_current not in threads")
 
+        def toggleCamStreamThread():
+            if threads["steam_cam_status"].isCollecting():
+                threads["steam_cam_status"].stopCollection()
+                actions_b2['text'] = "Resume Camera Stream"
+            elif "stream_cam_status" in threads:
+                threads["steam_cam_status"].resumeCollection()
+                actions_b2['text'] = "Pause Camera Stream"
+            else:
+                print("stream_cam_status not in threads")
+
         actions_mc = ttk.Button(
             actions_panel,
             text="Pause Motor Data Collection",
@@ -177,6 +198,9 @@ class MainApplication(tk.Frame):
             actions_panel, text="Action 3", command=callback3, width=35)
         actions_b3.pack(side=tk.TOP, pady=20, padx=10)
 
+        actions_b4 = ttk.Button(
+            actions_panel, text="Pause Camera Stream", command=toggleCamStreamThread(), width=35)
+        actions_b4.pack(side=tk.TOP, pady=20, padx=10)
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
@@ -192,8 +216,8 @@ class MainApplication(tk.Frame):
         # Notebook and Tabs
         graphs_notebook = ttk.Notebook(graph_panel)
         graphs_mc_frame = tk.Frame(graphs_notebook, background="white")
-        graphs_2_frame = tk.Frame(graphs_notebook, background="white") # dummy tab
-        graphs_3_frame = tk.Frame(graphs_notebook, background="white") # dummy tab
+        graphs_2_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
+        graphs_3_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
 
         graphs_notebook.add(graphs_mc_frame, text="Graph 1")
         graphs_notebook.add(graphs_2_frame, text="Graph 2")
@@ -207,15 +231,16 @@ class MainApplication(tk.Frame):
         for i in range(len(graphs_mc_vars)):
             c = ttk.Checkbutton(
                 graphs_mc_checks,
-                text="Series " + str(i+1) + " ",
+                text="Series " + str(i + 1) + " ",
                 variable=graphs_mc_vars[i])
             c.grid(row=0, column=i)
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
             # Update function:
-            get_data_function = lambda: np.array([(data-20)/4 if var.get() == 1 else 0
-                for data, var in zip(threads["stream_motor_current"].get_recent_data(), graphs_mc_vars)])
+            get_data_function=lambda: np.array([(data - 20) / 4 if var.get() == 1 else 0
+                                                for data, var in
+                                                zip(threads["stream_motor_current"].get_recent_data(), graphs_mc_vars)])
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -227,7 +252,7 @@ class MainApplication(tk.Frame):
         for i in range(len(graphs_2_vars)):
             c = ttk.Checkbutton(
                 graphs_2_checks,
-                text="Series " + str(i+1) + " ",
+                text="Series " + str(i + 1) + " ",
                 variable=graphs_2_vars[i])
             c.grid(row=0, column=i)
 
@@ -245,10 +270,21 @@ def fake_generator(columns, max=10):
         yield np.array([random.randint(0, max) for i in range(columns)])
         time.sleep(0.1)
 
+def cam_stream():
+    cap = cv2.VideoCapture(0)
+    while (True):
+        ret, frame = cap.read()
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
 # Updates label text in the data panel. Called every second using app.after()
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
-        currents = threads["stream_motor_current"].get_recent_data()/4
+        currents = threads["stream_motor_current"].get_recent_data() / 4
         app.data_mc_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.data_mc_body['text'] = text
@@ -259,7 +295,7 @@ def updateDataPanel():
         # y.append(currentslist.pop())
         # print(currentslist)
     if threads["stream_arm_status"].isCollecting():
-        armdata = threads["stream_arm_status"].get_recent_data()/4
+        armdata = threads["stream_arm_status"].get_recent_data() / 4
         app.data_2_status['text'] = "STATUS: Collecting Data"
         text = formatArmStatus(armdata)
         app.data_2_body['text'] = text
@@ -274,9 +310,9 @@ def updateDataPanel():
 # Helper method for updateDataPanel().
 def formatMotorCurrents(currents):
     s = ""
-    for i in range(1,9):
+    for i in range(1, 9):
         s += "Motor " + str(i) + ":     "
-        s += "{:0<6.3f}".format(currents[i-1]) + " A\n\n"
+        s += "{:0<6.3f}".format(currents[i - 1]) + " A\n\n"
     return s
 
 def formatArmStatus(armdata):
@@ -294,10 +330,15 @@ if __name__ == '__main__':
     # stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
     # gen = rpc_client.stream_motor_current(stub)
     threads = {}
-    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8, max=40)) # 8 columns of fake data for the 8 motors
+    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8,
+                                                                                                                      max=40))  # 8 columns of fake data for the 8 motors
     threads["stream_motor_current"].start()
-    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2, max=40))  # 2 columns of fake data for angle and translation
+    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2,
+                                                                                                                max=40))  # 2 columns of fake data for angle and translation
     threads["stream_arm_status"].start()
+
+    threads["steam_cam_status"] = gui_datathread.DataThread("datathread for steam_cam_status", cam_stream())
+    threads["steam_cam_status"].start()
 
     root = tk.Tk()
 

@@ -5,12 +5,18 @@ import grpc
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
+import cv2
 
 class Greeter(helloworld_pb2_grpc.GreeterServicer):
 
     def MotorCurrent(self, request, context):
         pass
 
+    def cam_stream(self):
+        cap = cv2.VideoCapture(0)
+        while(True):
+            ret, frame = cap.read()
+            # convert frame to image
 
 
 def serve():
@@ -19,6 +25,9 @@ def serve():
     server.add_insecure_port('[::]:50051')
     server.start()
     server.wait_for_termination()
+
+
+
 
 
 if __name__ == '__main__':

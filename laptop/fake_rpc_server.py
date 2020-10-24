@@ -15,6 +15,11 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
             randoms = np.array([random.randint(0, 10) for i in range(8)], 'uint8') # 8 motors
             randoms = randoms.view('uint64') # combine into one value, as specified by the proto file
             yield jetsonrpc_pb2.MotorCurrent(values=randoms[0])
+            
+    def StreamIMUData(self, request, context):
+        while True:
+            randomVals = np.array([random.rand()*10 for i in range(6)]) #there are 6 values to be displayed
+            yield jetsonrpc_pb2.IMUData(values = randomVals)
 
 
 def serve():

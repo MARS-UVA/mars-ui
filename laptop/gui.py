@@ -10,16 +10,13 @@ import matplotlib.pyplot as plt
 import random
 import time
 from datetime import datetime
-<<<<<<< HEAD
 import cv2
 import PIL.Image, PIL.ImageTk
-=======
 
 import grpc
 import rpc_client
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 import matplotlib
 matplotlib.use("TkAgg")
 
@@ -78,36 +75,25 @@ class MainApplication(tk.Frame):
         data_mc_frame = tk.Frame(data_notebook, background="white")
         data_2_frame = tk.Frame(data_notebook, background="white")  # dummy tab
         data_3_frame = tk.Frame(data_notebook, background="white")  # dummy tab
-<<<<<<< HEAD
 
         data_cam_frame = tk.Frame(data_notebook, background="white")  # adding a camera tab
-=======
         data_imu_frame = tk.Frame(data_notebook, background="white")
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 
         data_notebook.add(data_mc_frame, text="Motors Currents")
         data_notebook.add(data_2_frame, text="Arm")
         data_notebook.add(data_3_frame, text="Basket")
-<<<<<<< HEAD
 
         data_notebook.add(data_cam_frame, text="Camera")  # heading to camera tab
 
-=======
         data_notebook.add(data_imu_frame, text="IMU Data")
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
         data_notebook.pack(expand=1, fill='both')
 
         # Motor Currents tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
         self.data_mc_title = tk.Label(
             data_mc_frame, text="Motor Currents", font=("Pitch", 25))
-<<<<<<< HEAD
-        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10,
-                                sticky=tk.W)  # The .grid function is used to designate where this label is located
-=======
         # The .grid function is used to designate where this label is located
         self.data_mc_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 
         self.data_mc_status = tk.Label(
             data_mc_frame,
@@ -149,11 +135,9 @@ class MainApplication(tk.Frame):
             data_3_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
         self.data_3_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-<<<<<<< HEAD
         self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
         self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-=======
         # IMU Data tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
 
@@ -176,7 +160,6 @@ class MainApplication(tk.Frame):
             font=("Pitch", 20),
             justify=tk.LEFT)
         self.data_imu_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 
         # -------------------------------------------------------------------------
         # Actions Panel
@@ -214,7 +197,6 @@ class MainApplication(tk.Frame):
             else:
                 print("Stream_motor_current not in threads")
 
-<<<<<<< HEAD
         def toggleCamStreamThread():
             if threads["steam_cam_status"].isCollecting():
                 threads["steam_cam_status"].stopCollection()
@@ -224,7 +206,6 @@ class MainApplication(tk.Frame):
                 actions_b2['text'] = "Pause Camera Stream"
             else:
                 print("stream_cam_status not in threads")
-=======
         def toggleIMUDataThread():
             if threads["stream_IMU_data"].isCollecting():
                 threads["stream_IMU_data"].stopCollection()
@@ -234,7 +215,6 @@ class MainApplication(tk.Frame):
                 actions_imu['text'] = "Pause IMU Data Collection"
             else:
                 print("Stream_imu_data not in threads")
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 
         actions_mc = ttk.Button(
             actions_panel,
@@ -284,15 +264,8 @@ class MainApplication(tk.Frame):
         # Notebook and Tabs
         graphs_notebook = ttk.Notebook(graph_panel)
         graphs_mc_frame = tk.Frame(graphs_notebook, background="white")
-<<<<<<< HEAD
         graphs_2_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
         graphs_3_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
-=======
-        graphs_2_frame = tk.Frame(
-            graphs_notebook, background="white")  # dummy tab
-        graphs_3_frame = tk.Frame(
-            graphs_notebook, background="white")  # dummy tab
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
 
         graphs_notebook.add(graphs_mc_frame, text="Graph 1")
         graphs_notebook.add(graphs_2_frame, text="Graph 2")
@@ -312,14 +285,7 @@ class MainApplication(tk.Frame):
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-<<<<<<< HEAD
-            # Update function:
-            get_data_function=lambda: np.array([(data - 20) / 4 if var.get() == 1 else 0
-                                                for data, var in
-                                                zip(threads["stream_motor_current"].get_recent_data(), graphs_mc_vars)])
-=======
             get_data_function=lambda: np.array([data if var.get() == 1 else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -365,11 +331,7 @@ def cam_stream():
 
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
-<<<<<<< HEAD
-        currents = threads["stream_motor_current"].get_recent_data() / 4
-=======
         currents = threads["stream_motor_current"].get_recent_data()
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
         app.data_mc_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.data_mc_body['text'] = text
@@ -440,18 +402,6 @@ if __name__ == '__main__':
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}
-<<<<<<< HEAD
-    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", fake_generator(8,
-                                                                                                                      max=40))  # 8 columns of fake data for the 8 motors
-    threads["stream_motor_current"].start()
-    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(2,
-                                                                                                                max=40))  # 2 columns of fake data for angle and translation
-    threads["stream_arm_status"].start()
-
-    threads["steam_cam_status"] = gui_datathread.DataThread("datathread for steam_cam_status", cam_stream())
-    threads["steam_cam_status"].start()
-
-=======
     threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", rpc_client.stream_motor_current(stub))
     threads["stream_motor_current"].start()
     threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(
@@ -460,7 +410,6 @@ if __name__ == '__main__':
     threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for IMU_data", fake_generator(
         6, max=10))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
->>>>>>> 70b3abbde51506bb5d6ed738d7791f1797b07113
     root = tk.Tk()
 
     style = ttk.Style()

@@ -20,7 +20,7 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
         while True:
             randomVals = []
             for i in range(6): # six values, 3 for linear acc, 3 for angular acc
-                x = random.rand()* 10 # random float between 0 and 10
+                x = random.random()* 10 # random float between 0 and 10
                 randomVals.append(x)
             yield jetsonrpc_pb2.IMUData(values = randomVals)
 

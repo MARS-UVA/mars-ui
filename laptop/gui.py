@@ -247,7 +247,7 @@ class MainApplication(tk.Frame):
         actions_b3.pack(side=tk.TOP, pady=20, padx=10)
 
         actions_b4 = ttk.Button(
-            actions_panel, text="Pause Camera Stream", command=toggleCamStreamThread(), width=35)
+            actions_panel, text="Pause Camera Stream", command=toggleCamStreamThread, width=35)
         actions_b4.pack(side=tk.TOP, pady=20, padx=10)
         # -------------------------------------------------------------------------
         # Graphs Panel

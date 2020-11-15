@@ -347,7 +347,7 @@ def updateDataPanel():
         app.data_mc_status['text'] = "STATUS: Paused"
         app.data_mc_body['text'] = ""
     if threads["stream_IMU_data"].isCollecting():
-        IMU_data = threads["stream_IMU_data"].get_recent_data() / 4
+        IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
         app.data_imu_status['text'] = "STATUS: Collecting Data"
         text = formatIMUData(IMU_data)
         app.data_imu_body['text'] = text
@@ -380,7 +380,7 @@ def formatArmStatus(armdata):
 
 
 def formatIMUData(IMU_data):
-    lx, ly, lz, ax, ay, az = IMU_data
+    lx, ly, lz, ax, ay, az = IMU_data #assigns these vars to list values
     s = ""
     s += "Lin Accel X:     "
     s += "{:0<6.3f}".format(lx) + " Units\n\n"
@@ -407,8 +407,7 @@ if __name__ == '__main__':
     threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(
         2, max=40))  # 2 columns of fake data for angle and translation
     threads["stream_arm_status"].start()
-    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for IMU_data", fake_generator(
-        6, max=10))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
+    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for IMU_data", rpc_client.stream_imu(stub))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
     root = tk.Tk()
 

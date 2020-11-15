@@ -24,7 +24,7 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
             randoms = randoms.view('uint64') # combine into one value, as specified by the proto file
             yield jetsonrpc_pb2.MotorCurrent(values=randoms[0])
             
-    def StreamIMUData(self, request, context):
+    def StreamIMU(self, request, context):
         while True:
             randomVals = []
             for i in range(6): # six values, 3 for linear acc, 3 for angular acc

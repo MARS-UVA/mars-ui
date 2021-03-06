@@ -11,7 +11,6 @@ import cv2
 
 class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
-
     def cam_stream(self):
         cap = cv2.VideoCapture(0)
         while(True):
@@ -23,15 +22,19 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
             randoms = np.array([random.randint(0, 10) for i in range(8)], 'uint8') # 8 motors
             randoms = randoms.view('uint64') # combine into one value, as specified by the proto file
             yield jetsonrpc_pb2.MotorCurrent(values=randoms[0])
-            
+
     def StreamIMU(self, request, context):
         while True:
-            randomVals = []
-            for i in range(6): # six values, 3 for linear acc, 3 for angular acc
-                x = random.random()* 10 # random float between 0 and 10
-                randomVals.append(x)
-            yield jetsonrpc_pb2.IMUData(values = randomVals)
+            # 6 values: 3 for linear acc, 3 for angular acc
+            # random floats between 0 and 10
+            randoms = [random.random() * 10 for i in range(6)]
+            yield jetsonrpc_pb2.IMUData(values=randoms)
 
+    def StreamArmStatus(self, request, context):
+        while True:
+            random_angle = random.random() * 45
+            random_translation = random.random() * 2
+            yield jetsonrpc_pb2.ArmStatus(angle=random_angle, translation=random_translation)
 
 
 def serve():
@@ -40,10 +43,6 @@ def serve():
     server.add_insecure_port('[::]:50051')
     server.start()
     server.wait_for_termination()
-
-
-
-
 
 if __name__ == '__main__':
     logging.basicConfig()

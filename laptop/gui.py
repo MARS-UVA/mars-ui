@@ -71,21 +71,17 @@ class MainApplication(tk.Frame):
         # Notebook and tabs
         data_notebook = ttk.Notebook(data_panel)
 
-        # mc stands for motor current
-        data_mc_frame = tk.Frame(data_notebook, background="white")
-        data_2_frame = tk.Frame(data_notebook, background="white")  # dummy tab
-        data_3_frame = tk.Frame(data_notebook, background="white")  # dummy tab
-
-        data_cam_frame = tk.Frame(data_notebook, background="white")  # adding a camera tab
-        data_imu_frame = tk.Frame(data_notebook, background="white")
+        data_mc_frame = tk.Frame(data_notebook, background="white")  # mc stands for motor current
+        data_arm_frame = tk.Frame(data_notebook, background="white")
+        data_basket_frame = tk.Frame(data_notebook, background="white")
+        data_cam_frame = tk.Frame(data_notebook, background="white")
+        data_IMU_frame = tk.Frame(data_notebook, background="white")
 
         data_notebook.add(data_mc_frame, text="Motors Currents")
-        data_notebook.add(data_2_frame, text="Arm")
-        data_notebook.add(data_3_frame, text="Basket")
-
-        data_notebook.add(data_cam_frame, text="Camera")  # heading to camera tab
-
-        data_notebook.add(data_imu_frame, text="IMU Data")
+        data_notebook.add(data_arm_frame, text="Arm")
+        data_notebook.add(data_basket_frame, text="Basket")
+        data_notebook.add(data_IMU_frame, text="IMU Data")
+        data_notebook.add(data_cam_frame, text="Camera")
         data_notebook.pack(expand=1, fill='both')
 
         # Motor Currents tab. All labels are defined as instance variables
@@ -103,37 +99,33 @@ class MainApplication(tk.Frame):
 
         self.data_mc_body = tk.Label(
             data_mc_frame,
-            text="Motor 1 Speed: xx rpm",
+            text="NA",
             font=("Pitch", 20),
             justify=tk.LEFT)
         self.data_mc_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Arm Status tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
-        self.data_2_title = ttk.Label(
-            data_2_frame, text="Arm Status", font=("Pitch", 25))
-        self.data_2_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_arm_title = ttk.Label(
+            data_arm_frame, text="Arm Status", font=("Pitch", 25))
+        self.data_arm_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        self.data_2_status = tk.Label(
-            data_2_frame,
+        self.data_arm_status = tk.Label(
+            data_arm_frame,
             text="STATUS: Collecting Data",
             font='Pitch 20 bold')
-        self.data_2_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
+        self.data_arm_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
 
-        self.data_2_body = tk.Label(
-            data_2_frame,
-            text="Motor 1 Speed: xx rpm",
+        self.data_arm_body = tk.Label(
+            data_arm_frame,
+            text="MA",
             font=("Pitch", 20),
             justify=tk.LEFT)
-        self.data_2_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_arm_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
-        # self.data_2_body = ttk.Label(
-        #     data_2_frame, text="Length of Arm", font=("Tahoma", 25))
-        # self.data_2_body.grid(row=2, column=0, padx=10, pady=10)
-
-        self.data_3_title = ttk.Label(
-            data_3_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
-        self.data_3_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_basket_title = ttk.Label(
+            data_basket_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
+        self.data_basket_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
         self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
         self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
@@ -141,32 +133,31 @@ class MainApplication(tk.Frame):
         # IMU Data tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
 
-        self.data_imu_title = tk.Label(
-            data_imu_frame, text="IMU Data", font=("Pitch", 25))
+        self.data_IMU_title = tk.Label(
+            data_IMU_frame, text="IMU Data", font=("Pitch", 25))
         # The .grid function is used to designate where this label is located
-        self.data_imu_title.grid(
+        self.data_IMU_title.grid(
             row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        self.data_imu_status = tk.Label(
-            data_imu_frame,
+        self.data_IMU_status = tk.Label(
+            data_IMU_frame,
             text="STATUS: Collecting Data",
             font='Pitch 20 bold')
-        self.data_imu_status.grid(
+        self.data_IMU_status.grid(
             row=1, column=0, padx=10, pady=3, sticky=tk.W)
 
-        self.data_imu_body = tk.Label(
-            data_imu_frame,
-            text="Lin/Ang Accel X/Y/Z: xx Units",
+        self.data_IMU_body = tk.Label(
+            data_IMU_frame,
+            text="NA",
             font=("Pitch", 20),
             justify=tk.LEFT)
-        self.data_imu_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_IMU_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # -------------------------------------------------------------------------
         # Actions Panel
         #
         # This panel will contain a set of action buttons to control the robot
-        # and/or the UI. The only button that has been implemented as of 3/5/20
-        # is actions_mc, which pauses and resumes Motor Current data collection.
+        # and/or the UI.
         #
         # Naming convention: actions_<component name>
 
@@ -180,75 +171,77 @@ class MainApplication(tk.Frame):
         def toggleMotorCurrentThread():
             if threads["stream_motor_current"].isCollecting():
                 threads["stream_motor_current"].stopCollection()
-                actions_mc['text'] = "Resume Motor Data Collection"
+                actions_toggle_motor_data['text'] = "Resume Motor Data Collection"
             elif "stream_motor_current" in threads:
                 threads["stream_motor_current"].resumeCollection()
-                actions_mc['text'] = "Pause Motor Data Collection"
+                actions_toggle_motor_data['text'] = "Pause Motor Data Collection"
             else:
-                print("Stream_motor_current not in threads")
+                print("stream_motor_current not in threads")
 
         def toggleArmStatusThread():
             if threads["stream_arm_status"].isCollecting():
                 threads["stream_arm_status"].stopCollection()
-                actions_b2['text'] = "Resume Arm Data Collection"
+                actions_toggle_arm_data['text'] = "Resume Arm Data Collection"
             elif "stream_arm_status" in threads:
                 threads["stream_arm_status"].resumeCollection()
-                actions_b2['text'] = "Pause Arm Data Collection"
+                actions_toggle_arm_data['text'] = "Pause Arm Data Collection"
             else:
-                print("Stream_motor_current not in threads")
+                print("stream_arm_status not in threads")
 
         def toggleCamStreamThread():
             if threads["steam_cam_status"].isCollecting():
                 threads["steam_cam_status"].stopCollection()
-                actions_b2['text'] = "Resume Camera Stream"
+                actions_toggle_arm_data['text'] = "Resume Camera Stream"
             elif "stream_cam_status" in threads:
                 threads["steam_cam_status"].resumeCollection()
-                actions_b2['text'] = "Pause Camera Stream"
+                actions_toggle_arm_data['text'] = "Pause Camera Stream"
             else:
                 print("stream_cam_status not in threads")
+
         def toggleIMUDataThread():
             if threads["stream_IMU_data"].isCollecting():
                 threads["stream_IMU_data"].stopCollection()
-                actions_imu['text'] = "Resume IMU Data Collection"
+                actions_toggle_IMU_data['text'] = "Resume IMU Data Collection"
             elif "stream_IMU_data" in threads:
                 threads["stream_IMU_data"].resumeCollection()
-                actions_imu['text'] = "Pause IMU Data Collection"
+                actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
             else:
-                print("Stream_imu_data not in threads")
+                print("stream_IMU_data not in threads")
 
-        actions_mc = ttk.Button(
+        actions_toggle_motor_data = ttk.Button(
             actions_panel,
             text="Pause Motor Data Collection",
             command=toggleMotorCurrentThread,
             width=35)
-        actions_mc.pack(side=tk.TOP, pady=(15, 25), padx=10)
+        actions_toggle_motor_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_b2 = ttk.Button(
+        actions_toggle_arm_data = ttk.Button(
             actions_panel,
             text="Pause Arm Data Collection",
             command=toggleArmStatusThread,
             width=35)
-        actions_b2.pack(side=tk.TOP, pady=20, padx=10)
+        actions_toggle_arm_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_imu = ttk.Button(
+        actions_toggle_IMU_data = ttk.Button(
             actions_panel,
             text="Pause IMU Data Collection",
             command=toggleIMUDataThread,
             width=35)
-        actions_imu.pack(side=tk.TOP, pady=(15, 25), padx=10)
+        actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        # Dummy callback functions for b3
-        def callback3():
-            # Do something
-            print("Callback 3 Clicked!")
+        actions_toggle_camera_stream = ttk.Button(
+            actions_panel,
+            text="Pause Camera Stream",
+            command=toggleCamStreamThread,
+            width=35)
+        actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_b3 = ttk.Button(
-            actions_panel, text="Action 3", command=callback3, width=35)
-        actions_b3.pack(side=tk.TOP, pady=20, padx=10)
+        # Action buttons (placeholders)
+        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(40, 10), padx=10)
+        actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
+        actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_b4 = ttk.Button(
-            actions_panel, text="Pause Camera Stream", command=toggleCamStreamThread, width=35)
-        actions_b4.pack(side=tk.TOP, pady=20, padx=10)
+
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
@@ -279,7 +272,7 @@ class MainApplication(tk.Frame):
         for i in range(len(graphs_mc_vars)):
             c = ttk.Checkbutton(
                 graphs_mc_checks,
-                text="Series " + str(i + 1) + " ",
+                text="Motor " + str(i + 1),
                 variable=graphs_mc_vars[i])
             c.grid(row=0, column=i)
 
@@ -308,13 +301,6 @@ class MainApplication(tk.Frame):
         graphs_2_checks.pack(side=tk.TOP)
 
 
-# Generate random data. Used as a replacement for the generators
-# from rcp_client.py
-def fake_generator(columns, max=10):
-    while True:
-        yield np.array([random.randint(0, max) for i in range(columns)])
-        time.sleep(0.1)
-
 def cam_stream():
     cap = cv2.VideoCapture(0)
     while (True):
@@ -326,8 +312,6 @@ def cam_stream():
     cap.release()
     cv2.destroyAllWindows()
 
-# Updates label text in the data panel. Called every second using app.after()
-
 
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
@@ -335,25 +319,25 @@ def updateDataPanel():
         app.data_mc_status['text'] = "STATUS: Collecting Data"
         text = formatMotorCurrents(currents)
         app.data_mc_body['text'] = text
-    if threads["stream_arm_status"].isCollecting():
-        armdata = threads["stream_arm_status"].get_recent_data() / 4
-        app.data_2_status['text'] = "STATUS: Collecting Data"
-        text = formatArmStatus(armdata)
-        app.data_2_body['text'] = text
-    elif threads['stream_arm_status'].stopCollection():
-        app.data_2_status['text'] = "STATUS: Paused"
-        app.data_2_body['text'] = ""
-    elif threads["stream_motor_current"].stopCollection():
+    else:
         app.data_mc_status['text'] = "STATUS: Paused"
         app.data_mc_body['text'] = ""
+    if threads["stream_arm_status"].isCollecting():
+        armdata = threads["stream_arm_status"].get_recent_data()
+        app.data_arm_status['text'] = "STATUS: Collecting Data"
+        text = formatArmStatus(armdata)
+        app.data_arm_body['text'] = text
+    else:
+        app.data_arm_status['text'] = "STATUS: Paused"
+        app.data_arm_body['text'] = ""
     if threads["stream_IMU_data"].isCollecting():
         IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
-        app.data_imu_status['text'] = "STATUS: Collecting Data"
+        app.data_IMU_status['text'] = "STATUS: Collecting Data"
         text = formatIMUData(IMU_data)
-        app.data_imu_body['text'] = text
-    elif threads["stream_IMU_data"].stopCollection():
-        app.data_imu_status['text'] = "STATUS: Paused"
-        app.data_imu_body['text'] = ""
+        app.data_IMU_body['text'] = text
+    else:
+        app.data_IMU_status['text'] = "STATUS: Paused"
+        app.data_IMU_body['text'] = ""
     app.after(1000, updateDataPanel)
 
 # Helper method for updateDataPanel().
@@ -404,10 +388,9 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", rpc_client.stream_motor_current(stub))
     threads["stream_motor_current"].start()
-    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", fake_generator(
-        2, max=40))  # 2 columns of fake data for angle and translation
+    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", rpc_client.stream_arm_status(stub))
     threads["stream_arm_status"].start()
-    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for IMU_data", rpc_client.stream_imu(stub))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
+    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
     root = tk.Tk()
 

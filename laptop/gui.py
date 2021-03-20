@@ -1,5 +1,7 @@
 import gui_datathread
 import gui_graph
+import gamepad_encoder # For controlling the robot using the gamepad
+import threading
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
@@ -21,6 +23,9 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
+HOST = "172.27.38.206"
+PORT = "50051"
+
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
@@ -36,6 +41,9 @@ class MainApplication(tk.Frame):
         master.grid_rowconfigure(0, weight=1)
 
         master.update()
+
+        self.isUsingGamepad = False
+        self.gamepadThread = None
 
         # There are three main frames: Data Panel, Actions Panel, and Graph Panel.
         data_panel = tk.Frame(
@@ -118,7 +126,7 @@ class MainApplication(tk.Frame):
 
         self.data_arm_body = tk.Label(
             data_arm_frame,
-            text="MA",
+            text="NA",
             font=("Pitch", 20),
             justify=tk.LEFT)
         self.data_arm_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
@@ -208,6 +216,20 @@ class MainApplication(tk.Frame):
             else:
                 print("stream_IMU_data not in threads")
 
+        def toggleGamepadControl():
+            if self.isUsingGamepad:
+                if HOST != "localhost":
+                    gamepad_encoder.stop()
+                    self.gamepadThread.join()
+                actions_toggle_gamepad_control['text'] = "Start Gamepad Control"
+                self.isUsingGamepad = False
+            else:
+                if HOST != "localhost":
+                    self.gamepadThread = threading.Thread(target=gamepad_encoder.run, args=(HOST, PORT,))
+                    self.gamepadThread.start()
+                actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
+                self.isUsingGamepad = True
+
         actions_toggle_motor_data = ttk.Button(
             actions_panel,
             text="Pause Motor Data Collection",
@@ -236,8 +258,15 @@ class MainApplication(tk.Frame):
             width=35)
         actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
+        actions_toggle_gamepad_control = ttk.Button(
+            actions_panel,
+            text="Start Gamepad Control",
+            command=toggleGamepadControl,
+            width=35)
+        actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(30, 10), padx=10)
+
         # Action buttons (placeholders)
-        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(40, 10), padx=10)
+        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(30, 10), padx=10)
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
 
@@ -267,7 +296,7 @@ class MainApplication(tk.Frame):
 
         # Motor Currents graph. Note that mc stands for motor current.
         graphs_mc_checks = tk.Frame(graphs_mc_frame, background="pink")
-        graphs_mc_vars = [tk.IntVar() for i in range(8)]
+        graphs_mc_vars = [tk.BooleanVar(value=True) for i in range(8)]
 
         for i in range(len(graphs_mc_vars)):
             c = ttk.Checkbutton(
@@ -278,7 +307,7 @@ class MainApplication(tk.Frame):
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=lambda: np.array([data if var.get() == 1 else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
+            get_data_function=lambda: np.array([data if (var.get() == True) else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -340,8 +369,6 @@ def updateDataPanel():
         app.data_IMU_body['text'] = ""
     app.after(1000, updateDataPanel)
 
-# Helper method for updateDataPanel().
-
 
 def formatMotorCurrents(currentsCombined):
     currents = currentsCombined.view('float32')
@@ -364,7 +391,7 @@ def formatArmStatus(armdata):
 
 
 def formatIMUData(IMU_data):
-    lx, ly, lz, ax, ay, az = IMU_data #assigns these vars to list values
+    lx, ly, lz, ax, ay, az = IMU_data # assigns these vars to list values
     s = ""
     s += "Lin Accel X:     "
     s += "{:0<6.3f}".format(lx) + " Units\n\n"
@@ -381,8 +408,16 @@ def formatIMUData(IMU_data):
     return s
 
 
+def fake_generator(columns, max=10):
+    while True:
+        yield np.array([random.randint(0, max) for i in range(columns)])
+        time.sleep(0.1)
+
+
 if __name__ == '__main__':
-    channel = grpc.insecure_channel('localhost:50051') # 'localhost' for development, '172.27.39.1' for robot?
+    # channel = grpc.insecure_channel('localhost:50051') # 'localhost' for development, '172.27.39.1' for robot?
+    # channel = grpc.insecure_channel('172.27.38.206:50051')
+    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}
@@ -390,10 +425,13 @@ if __name__ == '__main__':
     threads["stream_motor_current"].start()
     threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", rpc_client.stream_arm_status(stub))
     threads["stream_arm_status"].start()
-    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
+    # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
+    # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))
+    # threads["stream_IMU_data"].start()
+    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
-    root = tk.Tk()
 
+    root = tk.Tk()
     style = ttk.Style()
     style.configure("TButton", font="Tahoma 18")
     style.configure("BW.TLabel", foreground="black",
@@ -403,7 +441,11 @@ if __name__ == '__main__':
     app.after(100, updateDataPanel)
     root.mainloop()
 
-    # after ui is closed:
+    # After UI is closed:
+    if HOST != "localhost" and gamepad_encoder.gamepad_running:
+        gamepad_encoder.stop()
+        app.gamepadThread.join()
+
     for k in threads.keys():
         threads[k].stop()
         threads[k].join()

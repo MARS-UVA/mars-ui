@@ -58,7 +58,7 @@ class LineGraph(tk.Frame):
             self.fig = plt.Figure()  # figsize=(6,5), dpi=100)
             self.ax = self.fig.add_subplot(111)
             self.ax.set_title('X vs. Y')
-            self.ax.axis([0, self.datalen, -8, 8])
+            self.ax.axis([0, self.datalen, 0, 25])
 
             self.canvas = FigureCanvasTkAgg(self.fig, parent)
             self.canvas.get_tk_widget().pack()  # side=tk.LEFT, fill=tk.BOTH)

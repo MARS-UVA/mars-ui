@@ -10,11 +10,12 @@ from protos import jetsonrpc_pb2
 from utils.protocol import encode_values
 from keyboard_driver import keyboard_val_gen
 
+gamepad_running = False
 
 def gamepad_val_gen():
-    from .gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
+    from gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
     prev_motor_val = 0
-    while True:
+    while gamepad_running:
         # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
         if joyGetPosEx(0, p_info) != 0:
             print("Gamepad disconnected")
@@ -27,7 +28,6 @@ def gamepad_val_gen():
         print(values)
         prev_motor_val = motor_val
         yield jetsonrpc_pb2.MotorCmd(values=motor_val)
-
 
 def dummy_val_gen():
     import random
@@ -44,18 +44,24 @@ def dummy_val_gen():
             left, right, act1, act2, ladder, deposit
         ))
 
-
-HOST = '172.27.39.1'    # The remote host
-PORT = 50051        # The same port as used by the server
-
-
-def run():
-    with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
+def run(host, port):
+    print("gamepad_encoder starting...")
+    global gamepad_running
+    gamepad_running = True
+    with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
         response = stub.SendMotorCmd(gamepad_val_gen())
         print(response)
 
+def stop():
+    print("gamepad_encoder stopping...")
+    global gamepad_running
+    gamepad_running = False
+
 
 if __name__ == '__main__':
+    host = '172.27.38.206'    # The remote host
+    port = 50051        # The same port as used by the server
+
     logging.basicConfig()
-    run()
+    run(host, port)

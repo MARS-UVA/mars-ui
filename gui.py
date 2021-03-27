@@ -323,10 +323,10 @@ class MainApplication(tk.Frame):
                 variable=graphs_2_vars[i])
             c.grid(row=0, column=i)
 
-        graphs_2_lineGraph = gui_graph.LineGraph(
+        graphs_2_ArmGraph = gui_graph.ArmGraph(
             graphs_2_frame,
         )
-        graphs_2_lineGraph.ax.set_title("Length of Robotic Arm")
+        graphs_2_ArmGraph.ax.set_title("Length of Robotic Arm")
         graphs_2_checks.pack(side=tk.TOP)
 
 

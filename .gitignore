@@ -8,3 +8,5 @@ temp
 *.pkl
 *_pb2*.py
 *.proto
+.idea
+laptop

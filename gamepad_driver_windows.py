@@ -2,6 +2,31 @@
 # Further reading about the WinMM Joystick API:
 # http://msdn.microsoft.com/en-us/library/windows/desktop/dd757116(v=vs.85).aspx
 
+"""
+Current values: (tested with logitech gamepad)
+Left stick:
+N = (..., 100, 200, ...)
+E = (..., 200, 100, ...)
+S = (..., 100, 0, ...)
+W = (..., 0, 100, ...)
+
+Right stick:
+N = (0, 0, ...)
+E = (0, 200, ...)
+S = (200, 200, ...)
+W = (200, 0, ...)
+
+Right thumb buttons (the letter/shape ones):
+N = (..., 2)
+S = (..., 0)
+
+Triggers: ...
+
+
+These values may not make the most sense (eg the right stick N/S directions are swapped). If the 
+behavior of this file is changed, make sure to also update gamepad_driver_linux.py. 
+"""
+
 from math import floor, ceil
 import time
 import ctypes
@@ -236,5 +261,5 @@ if __name__ == "__main__":
         if joyGetPosEx(0, p_info) != 0:
             print("Gamepad disconnected")
             break
-        get_gamepad_values()
+        print(get_gamepad_values())
         time.sleep(0.1)

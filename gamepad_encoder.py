@@ -4,6 +4,7 @@ import grpc
 import cv2
 import numpy as np
 import platform
+import sys
 
 from protos import jetsonrpc_pb2_grpc
 from protos import jetsonrpc_pb2
@@ -13,13 +14,20 @@ from keyboard_driver import keyboard_val_gen
 gamepad_running = False
 
 def gamepad_val_gen():
-    from gamepad_driver import get_gamepad_values, joyGetPosEx, p_info
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        from gamepad_driver_windows import get_gamepad_values #, joyGetPosEx, p_info
+    elif sys.platform.startswith("linux"):
+        from gamepad_driver_linux import get_gamepad_values
+    else:
+        print("Error: platform not recognized!")
+        return
+
     prev_motor_val = 0
     while gamepad_running:
         # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
-        if joyGetPosEx(0, p_info) != 0:
-            print("Gamepad disconnected")
-            break
+        # if joyGetPosEx(0, p_info) != 0:
+        #     print("Gamepad disconnected")
+        #     break
         values = get_gamepad_values()
         motor_val = encode_values(*values)
         if prev_motor_val == motor_val:  # don't seed messages if gamepad value is not changing

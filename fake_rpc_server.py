@@ -2,6 +2,7 @@ from concurrent import futures
 import logging
 import numpy as np
 import random
+import time
 
 import grpc
 
@@ -11,11 +12,13 @@ import cv2
 
 class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
-    def cam_stream(self):
+    def StreamImage(self, request, context):
         cap = cv2.VideoCapture(0)
         while(True):
             ret, frame = cap.read()
-            # convert frame to image
+            ret, data = cv2.imencode(".jpg", frame)
+            yield jetsonrpc_pb2.Image(data=data.tobytes())
+            time.sleep(0.05)
 
     def StreamMotorCurrent(self, request, context):
         while True:

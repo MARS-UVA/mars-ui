@@ -233,7 +233,7 @@ class MainApplication(tk.Frame):
                 self.isUsingGamepad = False
             else:
                 if HOST != "localhost":
-                    self.gamepadThread = threading.Thread(target=gamepad_encoder.run, args=(HOST, PORT,))
+                    self.gamepadThread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
                     self.gamepadThread.start()
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True

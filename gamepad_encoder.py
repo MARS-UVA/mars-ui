@@ -17,13 +17,16 @@ def gamepad_val_gen():
     if sys.platform == "win32" or sys.platform == "cygwin":
         from gamepad_driver_windows import get_gamepad_values #, joyGetPosEx, p_info
     elif sys.platform.startswith("linux"):
+        import gamepad_driver_linux
         from gamepad_driver_linux import get_gamepad_values
+        gamepad_driver_linux.start()
     else:
         print("Error: platform not recognized!")
         return
 
-    prev_motor_val = 0
+    prev_motor_val = None
     while gamepad_running:
+        print("gr:", gamepad_running)
         # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
         # if joyGetPosEx(0, p_info) != 0:
         #     print("Gamepad disconnected")
@@ -32,10 +35,13 @@ def gamepad_val_gen():
         motor_val = encode_values(*values)
         if prev_motor_val == motor_val:  # don't seed messages if gamepad value is not changing
             time.sleep(0.01)
-            continue
-        print(values)
-        prev_motor_val = motor_val
-        yield jetsonrpc_pb2.MotorCmd(values=motor_val)
+        else:
+            print(values)
+            prev_motor_val = motor_val
+            yield jetsonrpc_pb2.MotorCmd(values=motor_val)
+    
+    if sys.platform.startswith("linux"):
+        gamepad_driver_linux.stop()
 
 def dummy_val_gen():
     import random
@@ -52,7 +58,7 @@ def dummy_val_gen():
             left, right, act1, act2, ladder, deposit
         ))
 
-def run(host, port):
+def start(host, port):
     print("gamepad_encoder starting...")
     global gamepad_running
     gamepad_running = True
@@ -72,4 +78,4 @@ if __name__ == '__main__':
     port = 50051        # The same port as used by the server
 
     logging.basicConfig()
-    run(host, port)
+    start(host, port)

@@ -10,6 +10,7 @@ code should work the same for windows and linux and therefore eliminate the need
 import inputs
 import math
 import time
+import threading
 
 codes = [ # These are listed here just to initialize the state dictionary
     "ABS_X", "ABS_Y", # Left stick
@@ -19,15 +20,19 @@ codes = [ # These are listed here just to initialize the state dictionary
     "ABS_HAT0X", "ABS_HAT0Y", # Hat (unused)
 ]
 state = {k:0 for k in codes}
+running = False
+state_update_thread = None
 
-
-def process_events():
-    events = inputs.get_gamepad()
-    for event in events:
-        if event.ev_type == "Sync":
-            continue
-        # print("e type=" + str(event.ev_type) + ", code=" + str(event.code) + ", state=" + str(event.state))
-        state[event.code] = event.state
+def update_state():
+    global state
+    while running:
+        events = inputs.get_gamepad()
+        for event in events:
+            if event.ev_type == "Sync":
+                continue
+            # print("e type=" + str(event.ev_type) + ", code=" + str(event.code) + ", state=" + str(event.state))
+            state[event.code] = event.state
+        # time.sleep(0.01)
 
 def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
     if abs(a) < l_th:
@@ -37,7 +42,6 @@ def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
     return a
 
 def get_gamepad_values():
-    process_events()
 
     x = (state["ABS_X"] - 0)/32768.0
     y = (state["ABS_Y"] - 0)/32768.0 * -1
@@ -67,7 +71,24 @@ def get_gamepad_values():
     )
     return args
 
+def start():
+    global running, state_update_thread
+    running = True
+    state_update_thread = threading.Thread(target=update_state)
+    state_update_thread.start()
+
+def stop():
+    global running, state_update_thread
+    running = False
+    state_update_thread.join()
+
 
 if __name__ == "__main__":
-    while True:
-        print(get_gamepad_values())
+    start()
+    try:
+        while True:
+            print(get_gamepad_values())
+            time.sleep(0.01)
+    except KeyboardInterrupt:
+        print("except KeyboardInterrupt")
+        stop()

@@ -1,12 +1,13 @@
 .vscode
+
 __pycache__
 _*
 !__init__.py
+
 node_modules
 .mypy_cache
-temp
 *.pkl
 *_pb2*.py
 *.proto
 .idea
-laptop
+.DS_Store

@@ -23,7 +23,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
-HOST = "172.27.38.206"
+HOST = "localhost"
 PORT = "50051"
 
 class MainApplication(tk.Frame):
@@ -177,44 +177,52 @@ class MainApplication(tk.Frame):
         # Pauses or resumes motor current data collection. Updates the text
         # on mc_toggle button.
         def toggleMotorCurrentThread():
+            if "stream_motor_current" not in threads:
+                print("stream_motor_current not in threads")
+                return
+
             if threads["stream_motor_current"].isCollecting():
                 threads["stream_motor_current"].stopCollection()
                 actions_toggle_motor_data['text'] = "Resume Motor Data Collection"
-            elif "stream_motor_current" in threads:
+            else:
                 threads["stream_motor_current"].resumeCollection()
                 actions_toggle_motor_data['text'] = "Pause Motor Data Collection"
-            else:
-                print("stream_motor_current not in threads")
 
         def toggleArmStatusThread():
+            if "stream_arm_status" not in threads:
+                print("stream_arm_status not in threads")
+                return
+
             if threads["stream_arm_status"].isCollecting():
                 threads["stream_arm_status"].stopCollection()
                 actions_toggle_arm_data['text'] = "Resume Arm Data Collection"
-            elif "stream_arm_status" in threads:
+            else:
                 threads["stream_arm_status"].resumeCollection()
                 actions_toggle_arm_data['text'] = "Pause Arm Data Collection"
-            else:
-                print("stream_arm_status not in threads")
 
-        def toggleCamStreamThread():
-            if threads["steam_cam_status"].isCollecting():
-                threads["steam_cam_status"].stopCollection()
+        def toggleCamDataThread():
+            if "stream_cam_data" not in threads:
+                print("stream_cam_data not in threads")
+                return
+
+            if threads["stream_cam_data"].isCollecting():
+                threads["stream_cam_data"].stopCollection()
                 actions_toggle_arm_data['text'] = "Resume Camera Stream"
-            elif "stream_cam_status" in threads:
-                threads["steam_cam_status"].resumeCollection()
-                actions_toggle_arm_data['text'] = "Pause Camera Stream"
             else:
-                print("stream_cam_status not in threads")
+                threads["stream_cam_data"].resumeCollection()
+                actions_toggle_arm_data['text'] = "Pause Camera Stream"
 
         def toggleIMUDataThread():
+            if "stream_IMU_data" not in threads:
+                print("stream_IMU_data not in threads")
+                return
+
             if threads["stream_IMU_data"].isCollecting():
                 threads["stream_IMU_data"].stopCollection()
                 actions_toggle_IMU_data['text'] = "Resume IMU Data Collection"
-            elif "stream_IMU_data" in threads:
+            else:
                 threads["stream_IMU_data"].resumeCollection()
                 actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
-            else:
-                print("stream_IMU_data not in threads")
 
         def toggleGamepadControl():
             if self.isUsingGamepad:
@@ -251,12 +259,12 @@ class MainApplication(tk.Frame):
             width=35)
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_camera_stream = ttk.Button(
+        actions_toggle_camera_data = ttk.Button(
             actions_panel,
             text="Pause Camera Stream",
-            command=toggleCamStreamThread,
+            command=toggleCamDataThread,
             width=35)
-        actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
+        actions_toggle_camera_data.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_gamepad_control = ttk.Button(
             actions_panel,
@@ -331,6 +339,7 @@ class MainApplication(tk.Frame):
 
 
 def cam_stream():
+    # TODO
     cap = cv2.VideoCapture(0)
     while (True):
         ret, frame = cap.read()
@@ -415,8 +424,6 @@ def fake_generator(columns, max=10):
 
 
 if __name__ == '__main__':
-    # channel = grpc.insecure_channel('localhost:50051') # 'localhost' for development, '172.27.39.1' for robot?
-    # channel = grpc.insecure_channel('172.27.38.206:50051')
     channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
@@ -426,6 +433,7 @@ if __name__ == '__main__':
     threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", rpc_client.stream_arm_status(stub))
     threads["stream_arm_status"].start()
     # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
+    # For now, use a local source of fake data instead of the rpc server
     # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))
     # threads["stream_IMU_data"].start()
     threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration

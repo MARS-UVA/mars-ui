@@ -22,9 +22,40 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 import matplotlib
 matplotlib.use("TkAgg")
 
+stub = None
 
+# HOST = "172.27.38.206"
 HOST = "localhost"
 PORT = "50051"
+
+def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
+    frame = tk.Frame(parent)
+    def toggle_command():
+        if b['text'] == on_text:
+            datathread.stopCollection()
+            b['text'] = off_text
+        elif b['text'] == off_text:
+            datathread.resumeCollection()
+            b['text'] = on_text
+    b = ttk.Button(
+        frame,
+        text=on_text,
+        command=toggle_command,
+        width=28)
+    b.pack(side=tk.LEFT, pady=2, padx=2)
+
+    r = tk.Entry(frame, width=6) # Could do validation like this: https://riptutorial.com/tkinter/example/27780/adding-validation-to-an-entry-widget
+    r.insert(0, "30")
+    r.pack(side=tk.LEFT, pady=2, padx=2)
+
+    def rate_command():
+        rate = int(r.get())
+        # print("updating rate:", rate)
+        datathread.updateGenerator(rpc_function(stub, rate=rate))
+    c = ttk.Button(frame, text="✓", command=rate_command, width=2)
+    c.pack(side=tk.LEFT, pady=2, padx=2)
+
+    return frame
 
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -238,18 +269,20 @@ class MainApplication(tk.Frame):
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
 
-        actions_toggle_motor_data = ttk.Button(
-            actions_panel,
-            text="Pause Motor Data Collection",
-            command=toggleMotorCurrentThread,
-            width=35)
+         # actions_toggle_motor_data = ttk.Button(
+        #     actions_panel,
+        #     text="Pause Motor Data Collection",
+        #     command=toggleMotorCurrentThread,
+        #     width=35)
+        actions_toggle_motor_data = ratebutton_factory(actions_panel, "Pause Motor Data Collection", "Resume Motor Data Collection", threads["stream_motor_current"], rpc_client.stream_motor_current)
         actions_toggle_motor_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_arm_data = ttk.Button(
-            actions_panel,
-            text="Pause Arm Data Collection",
-            command=toggleArmStatusThread,
-            width=35)
+        # actions_toggle_arm_data = ttk.Button(
+        #     actions_panel,
+        #     text="Pause Arm Data Collection",
+        #     command=toggleArmStatusThread,
+        #     width=35)
+        actions_toggle_arm_data = ratebutton_factory(actions_panel, "Pause Arm Data Collection", "Resume Arm Data Collection", threads["stream_arm_status"], rpc_client.stream_arm_status)
         actions_toggle_arm_data.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_IMU_data = ttk.Button(
@@ -259,22 +292,22 @@ class MainApplication(tk.Frame):
             width=35)
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_camera_data = ttk.Button(
+        actions_toggle_camera_stream = ttk.Button(
             actions_panel,
             text="Pause Camera Stream",
             command=toggleCamDataThread,
             width=35)
-        actions_toggle_camera_data.pack(side=tk.TOP, pady=10, padx=10)
+        actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_gamepad_control = ttk.Button(
             actions_panel,
             text="Start Gamepad Control",
             command=toggleGamepadControl,
             width=35)
-        actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(30, 10), padx=10)
+        actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(35, 10), padx=10)
 
         # Action buttons (placeholders)
-        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(30, 10), padx=10)
+        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
 
@@ -282,8 +315,7 @@ class MainApplication(tk.Frame):
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
-        # This panel will contain a graphs that display data in real time. The only
-        # graph that has been created as of 3/5/20 is the motor currents line graph.
+        # This panel will contain graphs that display data in real time. 
         #
         # Naming convention: graphs_<tab name (if any)>_<component name>
 
@@ -313,9 +345,16 @@ class MainApplication(tk.Frame):
                 variable=graphs_mc_vars[i])
             c.grid(row=0, column=i)
 
+        def mc_data():
+            d = threads["stream_motor_current"].get_recent_data()
+            vs = graphs_mc_vars
+            if d is None:
+                return np.array([0 for _ in vs])
+            return np.array([data if (var.get() == True) else 0 for data, var in zip(d.view('float32'), vs)])
+
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=lambda: np.array([data if (var.get() == True) else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
+            get_data_function=mc_data
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -380,6 +419,8 @@ def updateDataPanel():
 
 
 def formatMotorCurrents(currentsCombined):
+    if currentsCombined is None:
+        return "NA"
     currents = currentsCombined.view('float32')
     s = ""
     for i in range(1, 9):
@@ -389,6 +430,8 @@ def formatMotorCurrents(currentsCombined):
 
 
 def formatArmStatus(armdata):
+    if armdata is None:
+        return "NA"
     angle, translation = armdata
     s = ""
 
@@ -424,7 +467,7 @@ def fake_generator(columns, max=10):
 
 
 if __name__ == '__main__':
-    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
+    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT)) # make this a global variable?
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}

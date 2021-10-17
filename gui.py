@@ -138,6 +138,8 @@ class MainApplication(tk.Frame):
         self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
         self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
+        self.data_cam_body = tk.Label(data_cam_frame)
+        self.data_cam_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
         # IMU Data tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
 
@@ -207,10 +209,10 @@ class MainApplication(tk.Frame):
 
             if threads["stream_cam_data"].isCollecting():
                 threads["stream_cam_data"].stopCollection()
-                actions_toggle_arm_data['text'] = "Resume Camera Stream"
+                actions_toggle_camera_data['text'] = "Resume Camera Stream"
             else:
                 threads["stream_cam_data"].resumeCollection()
-                actions_toggle_arm_data['text'] = "Pause Camera Stream"
+                actions_toggle_camera_data['text'] = "Pause Camera Stream"
 
         def toggleIMUDataThread():
             if "stream_IMU_data" not in threads:
@@ -338,19 +340,17 @@ class MainApplication(tk.Frame):
         graphs_2_checks.pack(side=tk.TOP)
 
 
+
+#vid = cv2.VideoCapture(0)
 def cam_stream():
-    # TODO
-    cap = cv2.VideoCapture(0)
-    while (True):
-        ret, frame = cap.read()
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-
+    frame = threads["stream_cam_data"].get_recent_data()
+    #ret, frame = vid.read()
+    frame = cv2.flip(frame, 1)
+    cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    img = PIL.Image.fromarray(cv2image)
+    imgtk = PIL.ImageTk.PhotoImage(image=img)
+    app.data_cam_body.imagetk = imgtk
+    app.data_cam_body.configure(image=imgtk)
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
         currents = threads["stream_motor_current"].get_recent_data()
@@ -376,6 +376,10 @@ def updateDataPanel():
     else:
         app.data_IMU_status['text'] = "STATUS: Paused"
         app.data_IMU_body['text'] = ""
+    if threads["stream_cam_data"].isCollecting():
+        cam_stream()
+    else:
+        app.data_cam_body.configure(text="no image")
     app.after(1000, updateDataPanel)
 
 
@@ -438,7 +442,9 @@ if __name__ == '__main__':
     # threads["stream_IMU_data"].start()
     threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
-
+    threads["stream_cam_data"] = gui_datathread.DataThread("datathread for stream_cam_data", rpc_client.stream_image(stub)) 
+    threads["stream_cam_data"].start()
+    
     root = tk.Tk()
     style = ttk.Style()
     style.configure("TButton", font="Tahoma 18")
@@ -446,6 +452,7 @@ if __name__ == '__main__':
                     background="white", font=("Tahoma 24"))
 
     app = MainApplication(root)
+    
     app.after(100, updateDataPanel)
     root.mainloop()
 

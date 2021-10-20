@@ -9,16 +9,16 @@ import grpc
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
 import cv2
-cap = cv2.VideoCapture(0)
-class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
-    def StreamImage(self, request, context):
+class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
+    cap = cv2.VideoCapture(0)
+    def StreamImage(self, request, context): #return frames
         
         while(True):
-            ret, frame = cap.read()
+            ret, frame = self.cap.read()
             ret, data = cv2.imencode(".jpg", frame)
             yield jetsonrpc_pb2.Image(data=data.tobytes())
-            #time.sleep(0.05)
+            time.sleep(0.05)
 
     def StreamMotorCurrent(self, request, context):
         while True:

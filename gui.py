@@ -134,7 +134,8 @@ class MainApplication(tk.Frame):
         self.data_basket_title = ttk.Label(
             data_basket_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
         self.data_basket_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
-
+        
+        #title and label body for camera streaming data
         self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
         self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
@@ -201,7 +202,7 @@ class MainApplication(tk.Frame):
             else:
                 threads["stream_arm_status"].resumeCollection()
                 actions_toggle_arm_data['text'] = "Pause Arm Data Collection"
-
+        #start or pause camera streaming
         def toggleCamDataThread():
             if "stream_cam_data" not in threads:
                 print("stream_cam_data not in threads")
@@ -260,7 +261,7 @@ class MainApplication(tk.Frame):
             command=toggleIMUDataThread,
             width=35)
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
-
+        #button for camera
         actions_toggle_camera_data = ttk.Button(
             actions_panel,
             text="Pause Camera Stream",
@@ -340,17 +341,16 @@ class MainApplication(tk.Frame):
         graphs_2_checks.pack(side=tk.TOP)
 
 
-
-#vid = cv2.VideoCapture(0)
+#update the image in label using camera data from thread
 def cam_stream():
     frame = threads["stream_cam_data"].get_recent_data()
-    #ret, frame = vid.read()
     frame = cv2.flip(frame, 1)
     cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
     img = PIL.Image.fromarray(cv2image)
     imgtk = PIL.ImageTk.PhotoImage(image=img)
     app.data_cam_body.imagetk = imgtk
     app.data_cam_body.configure(image=imgtk)
+
 def updateDataPanel():
     if threads["stream_motor_current"].isCollecting():
         currents = threads["stream_motor_current"].get_recent_data()
@@ -442,6 +442,7 @@ if __name__ == '__main__':
     # threads["stream_IMU_data"].start()
     threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
+    #the thread for camera streaming
     threads["stream_cam_data"] = gui_datathread.DataThread("datathread for stream_cam_data", rpc_client.stream_image(stub)) 
     threads["stream_cam_data"].start()
     

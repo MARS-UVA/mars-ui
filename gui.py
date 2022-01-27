@@ -238,6 +238,7 @@ class MainApplication(tk.Frame):
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
 
+        
         actions_toggle_motor_data = ttk.Button(
             actions_panel,
             text="Pause Motor Data Collection",
@@ -257,7 +258,16 @@ class MainApplication(tk.Frame):
             text="Pause IMU Data Collection",
             command=toggleIMUDataThread,
             width=35)
+       
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
+
+        actions_toggle_emergency_stop = ttk.Button(
+            actions_panel,
+            text="STOP",
+            #command=,
+            width=35)
+        actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
+
 
         actions_toggle_camera_data = ttk.Button(
             actions_panel,

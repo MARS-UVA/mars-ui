@@ -264,7 +264,7 @@ class MainApplication(tk.Frame):
         actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
             text="STOP",
-            #command=,
+            command="break",
             width=35)
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
 

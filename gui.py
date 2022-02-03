@@ -265,7 +265,8 @@ class MainApplication(tk.Frame):
             actions_panel,
             text="STOP",
             command="break",
-            width=35)
+            width=35,
+            color="red")
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
 
 

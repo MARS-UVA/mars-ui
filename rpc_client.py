@@ -41,8 +41,13 @@ def send_motor_cmd(stub: STUB, gen):
     return stub.StreamMotorCurrent(gen)
 
 
+def start_dig(stub: STUB, param=29):
+    return stub.StartDig(jetsonrpc_pb2.Params(param=param))
+
+
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("host", type=str, default="localhost")
     args = parser.parse_args()

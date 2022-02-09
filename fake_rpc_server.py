@@ -39,6 +39,13 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
             random_translation = random.random() * 2
             yield jetsonrpc_pb2.ArmStatus(angle=random_angle, translation=random_translation)
 
+    def StartDig(self, request, context):
+        print("it works")
+
+        print(request.param)
+        return jetsonrpc_pb2.Void()
+
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

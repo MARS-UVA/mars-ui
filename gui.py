@@ -1,6 +1,6 @@
 import gui_datathread
 import gui_graph
-import gamepad_encoder # For controlling the robot using the gamepad
+import gamepad_encoder  # For controlling the robot using the gamepad
 import threading
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -20,11 +20,13 @@ import rpc_client
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
 import matplotlib
-matplotlib.use("TkAgg")
 
+matplotlib.use("TkAgg")
 
 HOST = "localhost"
 PORT = "50051"
+
+stub = None
 
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -238,7 +240,9 @@ class MainApplication(tk.Frame):
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
 
-        
+        def dig_operation():
+            rpc_client.start_dig(stub)
+
         actions_toggle_motor_data = ttk.Button(
             actions_panel,
             text="Pause Motor Data Collection",
@@ -258,7 +262,7 @@ class MainApplication(tk.Frame):
             text="Pause IMU Data Collection",
             command=toggleIMUDataThread,
             width=35)
-       
+
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_emergency_stop = ttk.Button(
@@ -267,7 +271,6 @@ class MainApplication(tk.Frame):
             command="break",
             width=35)
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
-
 
         actions_toggle_camera_data = ttk.Button(
             actions_panel,
@@ -284,10 +287,18 @@ class MainApplication(tk.Frame):
         actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(30, 10), padx=10)
 
         # Action buttons (placeholders)
-        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(30, 10), padx=10)
-        actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
-        actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
-
+        actions_action_1 = ttk.Button(actions_panel, text="Start Dig",
+                                      command=dig_operation, width=35).pack(side=tk.TOP,
+                                                                                                         pady=(30, 10),
+                                                                                                         padx=10)
+        actions_action_2 = ttk.Button(actions_panel, text="Action 2",
+                                      command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP,
+                                                                                                         pady=10,
+                                                                                                         padx=10)
+        actions_action_3 = ttk.Button(actions_panel, text="Action 3",
+                                      command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP,
+                                                                                                         pady=10,
+                                                                                                         padx=10)
 
         # -------------------------------------------------------------------------
         # Graphs Panel
@@ -325,7 +336,9 @@ class MainApplication(tk.Frame):
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=lambda: np.array([data if (var.get() == True) else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
+            get_data_function=lambda: np.array([data if (var.get() == True) else 0 for data, var in
+                                                zip(threads["stream_motor_current"].get_recent_data().view('float32'),
+                                                    graphs_mc_vars)])
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -379,7 +392,7 @@ def updateDataPanel():
         app.data_arm_status['text'] = "STATUS: Paused"
         app.data_arm_body['text'] = ""
     if threads["stream_IMU_data"].isCollecting():
-        IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
+        IMU_data = threads["stream_IMU_data"].get_recent_data()  # the recent data is the array of 6 valuess
         app.data_IMU_status['text'] = "STATUS: Collecting Data"
         text = formatIMUData(IMU_data)
         app.data_IMU_body['text'] = text
@@ -410,7 +423,7 @@ def formatArmStatus(armdata):
 
 
 def formatIMUData(IMU_data):
-    lx, ly, lz, ax, ay, az = IMU_data # assigns these vars to list values
+    lx, ly, lz, ax, ay, az = IMU_data  # assigns these vars to list values
     s = ""
     s += "Lin Accel X:     "
     s += "{:0<6.3f}".format(lx) + " Units\n\n"
@@ -438,15 +451,18 @@ if __name__ == '__main__':
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}
-    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", rpc_client.stream_motor_current(stub))
+    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current",
+                                                                rpc_client.stream_motor_current(stub))
     threads["stream_motor_current"].start()
-    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", rpc_client.stream_arm_status(stub))
+    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status",
+                                                             rpc_client.stream_arm_status(stub))
     threads["stream_arm_status"].start()
     # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
     # For now, use a local source of fake data instead of the rpc server
     # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))
     # threads["stream_IMU_data"].start()
-    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
+    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6,
+                                                                                                            max=10))  # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
     threads["stream_IMU_data"].start()
 
     root = tk.Tk()

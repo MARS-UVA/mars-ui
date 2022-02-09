@@ -7,7 +7,7 @@ import sys
 from protos import jetsonrpc_pb2_grpc
 from protos import jetsonrpc_pb2
 from utils.protocol import encode_values
-# from keyboard_driver import keyboard_val_gen
+
 
 gamepad_running = False
 
@@ -19,13 +19,11 @@ if sys.platform.startswith("linux"): detected_platform = "LINUX"
 def gamepad_val_gen():
     if detected_platform == "WINDOWS":
         print("gamepad_encoder starting windows driver")
-        # from gamepad_driver_windows import get_gamepad_values
-        from gamepad_driver_windows import get_gamepad_values, joyGetPosEx, p_info
+        from gamepad_driver.gamepad_driver_windows import get_gamepad_values, joyGetPosEx, p_info
     elif detected_platform == "LINUX":
         print("gamepad_encoder starting linux driver")
-        import gamepad_driver_linux
-        from gamepad_driver_linux import get_gamepad_values
-        gamepad_driver_linux.start()
+        from gamepad_driver.gamepad_driver_linux import process_start, process_stop, get_gamepad_values
+        process_start()
     else:
         print("Error: gamepad_encoder system platform not recognized! Aborting...")
         return
@@ -39,8 +37,7 @@ def gamepad_val_gen():
 
         values = get_gamepad_values()
         encoded_val = encode_values(*values)
-        if prev_encoded_val == encoded_val:  # don't send messages if gamepad value hasn't changed
-            # print("skipping, e_v=", encoded_val, "v=", values)
+        if prev_encoded_val == encoded_val: # don't send messages if gamepad value hasn't changed
             time.sleep(0.01)
         else:
             print("gamepad_encoder sending motor values:", values)
@@ -48,7 +45,7 @@ def gamepad_val_gen():
             yield jetsonrpc_pb2.MotorCmd(values=encoded_val)
     
     if detected_platform == "LINUX": # only linux driver needs a "stop()" command
-        gamepad_driver_linux.stop()
+        process_stop()
 
 def dummy_val_gen():
     import random

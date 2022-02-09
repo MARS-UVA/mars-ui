@@ -1,6 +1,6 @@
 .vscode
 
-__pycache__
+*__pycache__
 _*
 !__init__.py
 
@@ -9,5 +9,5 @@ node_modules
 *.pkl
 *_pb2*.py
 *.proto
-.idea
-.DS_Store
+*.idea
+*.DS_Store

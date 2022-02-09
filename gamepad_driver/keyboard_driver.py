@@ -1,10 +1,17 @@
+# TODO this file is not compatible with the new system of processing values through the common
+# gamepad_encoder file. It looks like using the 'keyboard' package will have the same challenge
+# as in gamepad_driver_linux so multiprocessing might be necessary. Alternatively, there might
+# be a better keyboard input package out there that would work easier. 
+
+
 import keyboard
 from protos import jetsonrpc_pb2
 from utils.protocol import encode_values
 
 
+key_status = {'w': False, 'a': False, 's': False, 'd': False, 'up': False, 'down': False}
+
 def keyboard_val_gen():
-    key_status = {'w': False, 'a': False, 's': False, 'd': False, 'up': False, 'down': False}
     while True:
         event = keyboard.read_event()
         if key_status.get(event.name) is not None:

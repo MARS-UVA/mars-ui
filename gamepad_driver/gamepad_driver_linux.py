@@ -93,12 +93,12 @@ class InputProcess(multiprocessing.Process):
                     self.sharedstate[i] = n
     
 
-def start():
+def process_start():
     global state_update_process
     state_update_process = InputProcess(sharedstate)
     state_update_process.start()
 
-def stop():
+def process_stop():
     global state_update_process
     state_update_process.terminate()
     state_update_process.join()
@@ -108,11 +108,11 @@ def get_gamepad_values():
 
 
 if __name__ == "__main__":
-    start()
+    process_start()
     try:
         while True:
             print(get_gamepad_values())
             time.sleep(0.02)
     except KeyboardInterrupt:
         print("except KeyboardInterrupt")
-        stop()
+        process_stop()

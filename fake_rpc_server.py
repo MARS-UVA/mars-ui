@@ -3,14 +3,42 @@ import logging
 import numpy as np
 import random
 import time
-
+import cv2
 import grpc
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
-import cv2
 
-class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
+class FakeJetsonServiceImpl(jetsonrpc_pb2_grpc.JetsonRPC):
+
+    # Receiving data:
+
+    def SendMotorCmd(self, request, context):
+        print("received motor command...")
+        # Copied from https://github.com/MARS-UVA/mars-ros/blob/master/src/rpc-server/src/grpc-server.cpp function SendMotorCmd
+        for cmd in request:
+            raw = cmd.values
+            motors = [-1]*8
+            motors[7] = (raw & 0b11) * 100
+            raw >>= 2
+            motors[6] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[5] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[4] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[3] = (raw & 0b111111) << 2
+            motors[2] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[1] = raw << 2
+            motors[0] = raw << 2
+
+            print("received motor command:", motors)
+
+        return jetsonrpc_pb2.Void()
+
+
+    # Sending data:
 
     def StreamImage(self, request, context):
         cap = cv2.VideoCapture(0)
@@ -42,11 +70,13 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    jetsonrpc_pb2_grpc.add_JetsonRPCServicer_to_server(Greeter(), server)
-    server.add_insecure_port('[::]:50051')
+    jetsonrpc_pb2_grpc.add_JetsonRPCServicer_to_server(FakeJetsonServiceImpl(), server)
+    # server.add_insecure_port('[::]:50051')
+    server.add_insecure_port('0.0.0.0:50051')
     server.start()
     server.wait_for_termination()
 
 if __name__ == '__main__':
+    print("fake_rpc_server starting...")
     logging.basicConfig()
     serve()

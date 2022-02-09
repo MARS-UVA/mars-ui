@@ -23,6 +23,8 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
+# HOST = "10.0.0.115"
+# HOST = "172.27.172.34"
 HOST = "localhost"
 PORT = "50051"
 
@@ -226,15 +228,16 @@ class MainApplication(tk.Frame):
 
         def toggleGamepadControl():
             if self.isUsingGamepad:
-                if HOST != "localhost":
-                    gamepad_encoder.stop()
-                    self.gamepadThread.join()
+                print("stopping gamepad")
+                gamepad_encoder.stop()
+                self.gamepadThread.join()
                 actions_toggle_gamepad_control['text'] = "Start Gamepad Control"
                 self.isUsingGamepad = False
             else:
-                if HOST != "localhost":
-                    self.gamepadThread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
-                    self.gamepadThread.start()
+                # TODO check that a gamepad is connected. If not, skip this code. 
+                print("starting gamepad")
+                self.gamepadThread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
+                self.gamepadThread.start()
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
 
@@ -313,9 +316,12 @@ class MainApplication(tk.Frame):
                 variable=graphs_mc_vars[i])
             c.grid(row=0, column=i)
 
+        def get_lineGraph_data():
+            d = threads["stream_motor_current"].get_recent_data()
+            return np.array([data if (var.get() == True) else 0 for data, var in zip(d, graphs_mc_vars)])
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=lambda: np.array([data if (var.get() == True) else 0 for data, var in zip(threads["stream_motor_current"].get_recent_data().view('float32'), graphs_mc_vars)])
+            get_data_function=get_lineGraph_data
         )
         graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
@@ -450,7 +456,7 @@ if __name__ == '__main__':
     root.mainloop()
 
     # After UI is closed:
-    if HOST != "localhost" and gamepad_encoder.gamepad_running:
+    if gamepad_encoder.gamepad_running:
         gamepad_encoder.stop()
         app.gamepadThread.join()
 

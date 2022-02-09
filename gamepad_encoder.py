@@ -1,7 +1,5 @@
 import time
-import logging
 import grpc
-import cv2
 import numpy as np
 import platform
 import sys
@@ -9,38 +7,47 @@ import sys
 from protos import jetsonrpc_pb2_grpc
 from protos import jetsonrpc_pb2
 from utils.protocol import encode_values
-from keyboard_driver import keyboard_val_gen
+# from keyboard_driver import keyboard_val_gen
 
 gamepad_running = False
 
+detected_platform = None
+if sys.platform == "win32" or sys.platform == "cygwin": detected_platform = "WINDOWS"
+if sys.platform.startswith("linux"): detected_platform = "LINUX"
+
+
 def gamepad_val_gen():
-    if sys.platform == "win32" or sys.platform == "cygwin":
-        from gamepad_driver_windows import get_gamepad_values #, joyGetPosEx, p_info
-    elif sys.platform.startswith("linux"):
+    if detected_platform == "WINDOWS":
+        print("gamepad_encoder starting windows driver")
+        # from gamepad_driver_windows import get_gamepad_values
+        from gamepad_driver_windows import get_gamepad_values, joyGetPosEx, p_info
+    elif detected_platform == "LINUX":
+        print("gamepad_encoder starting linux driver")
         import gamepad_driver_linux
         from gamepad_driver_linux import get_gamepad_values
         gamepad_driver_linux.start()
     else:
-        print("Error: platform not recognized!")
+        print("Error: gamepad_encoder system platform not recognized! Aborting...")
         return
 
-    prev_motor_val = None
+    prev_encoded_val = None
     while gamepad_running:
-        print("gr:", gamepad_running)
-        # Fetch new joystick data until it returns non-0 (that is, it has been unplugged)
-        # if joyGetPosEx(0, p_info) != 0:
-        #     print("Gamepad disconnected")
-        #     break
+        if detected_platform == "WINDOWS" and joyGetPosEx(0, p_info) != 0: 
+            # For some reason, this is necessary for the windows code to update the gamepad values
+            print("Error: gamepad_encoder gamepad disconnected")
+            break
+
         values = get_gamepad_values()
-        motor_val = encode_values(*values)
-        if prev_motor_val == motor_val:  # don't seed messages if gamepad value is not changing
+        encoded_val = encode_values(*values)
+        if prev_encoded_val == encoded_val:  # don't send messages if gamepad value hasn't changed
+            # print("skipping, e_v=", encoded_val, "v=", values)
             time.sleep(0.01)
         else:
-            print(values)
-            prev_motor_val = motor_val
-            yield jetsonrpc_pb2.MotorCmd(values=motor_val)
+            print("gamepad_encoder sending motor values:", values)
+            prev_encoded_val = encoded_val
+            yield jetsonrpc_pb2.MotorCmd(values=encoded_val)
     
-    if sys.platform.startswith("linux"):
+    if detected_platform == "LINUX": # only linux driver needs a "stop()" command
         gamepad_driver_linux.stop()
 
 def dummy_val_gen():
@@ -53,10 +60,11 @@ def dummy_val_gen():
         ladder = random.randint(0, 200)  # arm
         deposit = random.choice([0, 1, 2])
 
-        print(left, left, right, right, act1, act2, ladder, deposit)
+        print(left, right, act1, act2, ladder, deposit)
         yield jetsonrpc_pb2.MotorCmd(values=encode_values(
             left, right, act1, act2, ladder, deposit
         ))
+        time.sleep(0.1)
 
 def start(host, port):
     print("gamepad_encoder starting...")
@@ -65,6 +73,7 @@ def start(host, port):
     with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
         response = stub.SendMotorCmd(gamepad_val_gen())
+        # response = stub.SendMotorCmd(dummy_val_gen()) # for sending fake data
         print(response)
 
 def stop():
@@ -74,8 +83,9 @@ def stop():
 
 
 if __name__ == '__main__':
-    host = '172.27.38.206'    # The remote host
-    port = 50051        # The same port as used by the server
+    # host = "10.0.0.60"
+    # host = "172.27.172.34"
+    host = "127.0.0.1"
+    port = 50051
 
-    logging.basicConfig()
     start(host, port)

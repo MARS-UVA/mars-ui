@@ -237,7 +237,6 @@ class MainApplication(tk.Frame):
                     self.gamepadThread.start()
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
-
         
         actions_toggle_motor_data = ttk.Button(
             actions_panel,
@@ -263,12 +262,11 @@ class MainApplication(tk.Frame):
 
         actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
-            text="STOP",
-            command="break",
+            text="EMERGENCY STOP",
+            command=rpc_client.emergency_stop(),
             width=35,
             color="red")
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
-
 
         actions_toggle_camera_data = ttk.Button(
             actions_panel,

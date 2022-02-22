@@ -22,11 +22,11 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 import matplotlib
 matplotlib.use("TkAgg")
 
-stub = None
 
-# HOST = "172.27.38.206"
 HOST = "localhost"
 PORT = "50051"
+
+stub = None
 
 def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     frame = tk.Frame(parent)
@@ -49,7 +49,12 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     r.pack(side=tk.LEFT, pady=2, padx=2)
 
     def rate_command():
-        rate = int(r.get())
+        rate = 1
+        try:
+            rate = int(r.get())
+        except ValueError:
+            r.delete(0, tk.END)
+            r.insert(0, "1")
         # print("updating rate:", rate)
         datathread.updateGenerator(rpc_function(stub, rate=rate))
     c = ttk.Button(frame, text="✓", command=rate_command, width=2)
@@ -269,19 +274,10 @@ class MainApplication(tk.Frame):
                 actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
                 self.isUsingGamepad = True
 
-         # actions_toggle_motor_data = ttk.Button(
-        #     actions_panel,
-        #     text="Pause Motor Data Collection",
-        #     command=toggleMotorCurrentThread,
-        #     width=35)
+
         actions_toggle_motor_data = ratebutton_factory(actions_panel, "Pause Motor Data Collection", "Resume Motor Data Collection", threads["stream_motor_current"], rpc_client.stream_motor_current)
         actions_toggle_motor_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        # actions_toggle_arm_data = ttk.Button(
-        #     actions_panel,
-        #     text="Pause Arm Data Collection",
-        #     command=toggleArmStatusThread,
-        #     width=35)
         actions_toggle_arm_data = ratebutton_factory(actions_panel, "Pause Arm Data Collection", "Resume Arm Data Collection", threads["stream_arm_status"], rpc_client.stream_arm_status)
         actions_toggle_arm_data.pack(side=tk.TOP, pady=10, padx=10)
 
@@ -415,7 +411,7 @@ def updateDataPanel():
     else:
         app.data_IMU_status['text'] = "STATUS: Paused"
         app.data_IMU_body['text'] = ""
-    app.after(1000, updateDataPanel)
+    app.after(500, updateDataPanel)
 
 
 def formatMotorCurrents(currentsCombined):
@@ -467,7 +463,7 @@ def fake_generator(columns, max=10):
 
 
 if __name__ == '__main__':
-    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT)) # make this a global variable?
+    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}
@@ -489,7 +485,7 @@ if __name__ == '__main__':
                     background="white", font=("Tahoma 24"))
 
     app = MainApplication(root)
-    app.after(100, updateDataPanel)
+    app.after(500, updateDataPanel)
     root.mainloop()
 
     # After UI is closed:

@@ -36,8 +36,9 @@ def stream_arm_status(stub: STUB, rate=30):
     for item in response:
         yield (item.angle, item.translation)
 
-def emergency_stop():
-    stub.EmergencyStop()
+def emergency_stop(stub: STUB, void = 10):
+    stub.EmergencyStop(jetsonrpc_pb2.Void())
+    #return Void
 
 def send_motor_cmd(stub: STUB, gen):
     return stub.StreamMotorCurrent(gen)

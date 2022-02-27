@@ -1,4 +1,4 @@
-from turtle import bgcolor
+from turtle import bgcolor, fillcolor
 import gui_datathread
 import gui_graph
 import gamepad_encoder # For controlling the robot using the gamepad
@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -279,13 +280,15 @@ class MainApplication(tk.Frame):
         actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(30, 10), padx=10)
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
-
+        #this style ttk stuff makes a pretty red button
+        style = ttk.Style()
+        style.configure('emergency.TButton', foreground='white',background="maroon",)
         actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
             text="EMERGENCY STOP",
             command=rpc_client.emergency_stop(stub),
             width=35,
-            
+            style="emergency.TButton",
         )
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
         # -------------------------------------------------------------------------

@@ -260,10 +260,10 @@ class MainApplication(tk.Frame):
        
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_emergenpycy_stop = ttk.Button(
+        actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
             text="EMERGENCY STOP",
-            command=rpc_client.emergency_stop(stub),
+           # command=rpc_client.emergency_stop(stub),
             width=35,
             color="red")
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)

@@ -1,3 +1,4 @@
+from turtle import bgcolor
 import gui_datathread
 import gui_graph
 import gamepad_encoder # For controlling the robot using the gamepad
@@ -260,14 +261,6 @@ class MainApplication(tk.Frame):
        
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_emergency_stop = ttk.Button(
-            actions_panel,
-            text="EMERGENCY STOP",
-           # command=rpc_client.emergency_stop(stub),
-            width=35,
-            color="red")
-        actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
-
         actions_toggle_camera_data = ttk.Button(
             actions_panel,
             text="Pause Camera Stream",
@@ -287,7 +280,14 @@ class MainApplication(tk.Frame):
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
 
-
+        actions_toggle_emergency_stop = ttk.Button(
+            actions_panel,
+            text="EMERGENCY STOP",
+            command=rpc_client.emergency_stop(stub),
+            width=35,
+            
+        )
+        actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
         # -------------------------------------------------------------------------
         # Graphs Panel
         #

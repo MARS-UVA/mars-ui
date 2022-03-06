@@ -259,7 +259,6 @@ class MainApplication(tk.Frame):
             text="Pause IMU Data Collection",
             command=toggleIMUDataThread,
             width=35)
-       
         actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_camera_data = ttk.Button(
@@ -276,6 +275,7 @@ class MainApplication(tk.Frame):
             width=35)
         actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(30, 10), padx=10)
 
+
         # Action buttons (placeholders)
         actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(30, 10), padx=10)
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
@@ -286,11 +286,12 @@ class MainApplication(tk.Frame):
         actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
             text="EMERGENCY STOP",
-            command=rpc_client.emergency_stop(stub),
+            command=lambda: rpc_client.emergency_stop(stub),
             width=35,
             style="emergency.TButton",
         )
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
+        
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
@@ -436,6 +437,7 @@ def fake_generator(columns, max=10):
 
 
 if __name__ == '__main__':
+    global stub
     channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 

@@ -15,9 +15,8 @@ import numpy as np
 
 
 class DataThread(threading.Thread):
-    def __init__(self, name, gen, test=False):
+    def __init__(self, name, gen):
         threading.Thread.__init__(self)
-        self.TESTING = test
         self.name = name
         self.gen = gen
         self.recent_data = None
@@ -52,6 +51,13 @@ class DataThread(threading.Thread):
         self.event.set()
         self.stopped = True
 
+    def updateRate(self, newRate):
+        pass
+
+    def updateGenerator(self, newGen):
+        # Used when the data transmission rate is changed
+        self.gen = newGen
+        pass
 
 """
 def animate(tick):

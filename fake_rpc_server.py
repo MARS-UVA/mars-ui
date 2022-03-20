@@ -41,7 +41,7 @@ class Greeter(jetsonrpc_pb2_grpc.JetsonRPC):
 
     def EmergencyStop(self, request, context):
         print("fake_rpc_server received emergency stop!")
-        pass
+        return jetsonrpc_pb2.Void()
 
 
 def serve():

@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
+from tkinter import *
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -307,10 +308,32 @@ class MainApplication(tk.Frame):
         actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(35, 10), padx=10)
 
         # Action buttons (placeholders)
-        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
+
+        def saveText(filepath,txt_edit,newWindow):
+            with open(filepath, "w") as output_file:
+                text = txt_edit.get(1.0, 'end')
+                output_file.write(text)
+                newWindow.destroy()
+        def write_File ():
+            filepath = "test.json"
+            newWindow = Toplevel(Tk())
+            newWindow.title("New Window")
+            newWindow.rowconfigure(0, minsize=50, weight=1)
+            newWindow.columnconfigure(1, minsize=50, weight=1)
+            txt_edit = tk.Text(newWindow)
+            txt_edit.grid(row=0, column=1, sticky="nsew")
+            txt_edit.delete(1.0, tk.END)
+            with open(filepath, "r") as input_file:
+                text = input_file.read()
+                txt_edit.insert(tk.END, text)
+            newButton = ttk.Button(newWindow, text = "Save", command = (lambda: saveText(filepath,txt_edit,newWindow)))
+            newButton.grid(row=0, column=0, sticky="nsew", padx=5)
+
+
+        actions_action_1 = ttk.Button(actions_panel, text = "Action 1", command = lambda: write_File(), width=35).pack(side=tk.TOP, pady=10, padx=10)
+        #actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
         actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
-
 
         # -------------------------------------------------------------------------
         # Graphs Panel

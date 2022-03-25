@@ -80,8 +80,10 @@ class MainApplication(tk.Frame):
 
         master.update()
 
-        self.isUsingGamepad = False
-        self.gamepadThread = None
+        self.is_using_gamepad = False
+        self.gamepad_thread = None
+
+        self.drive_state = jetsonrpc_pb2.DriveStateEnum.IDLE
 
         # There are three main frames: Data Panel, Actions Panel, and Graph Panel.
         data_panel = tk.Frame(
@@ -262,21 +264,34 @@ class MainApplication(tk.Frame):
                 threads["stream_IMU_data"].resumeCollection()
                 actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
 
-        def toggleGamepadControl():
-            if self.isUsingGamepad:
-                print("stopping gamepad")
-                gamepad_encoder.stop()
-                self.gamepadThread.join()
-                actions_toggle_gamepad_control['text'] = "Start Gamepad Control"
-                self.isUsingGamepad = False
-            else:
-                # TODO check that a gamepad is connected. If not, skip this code. 
-                print("starting gamepad")
-                self.gamepadThread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
-                self.gamepadThread.start()
-                actions_toggle_gamepad_control['text'] = "Stop Gamepad Control"
-                self.isUsingGamepad = True
+        def gamepadControlOff():
+            if not self.is_using_gamepad:
+                return
+            gamepad_encoder.stop()
+            self.gamepad_thread.join()
+            self.is_using_gamepad = False
 
+        def gamepadControlOn():
+            if self.is_using_gamepad:
+                return
+            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
+            self.gamepad_thread.start()
+            self.is_using_gamepad = True
+
+        def changeDriveState(new_state):
+            if new_state == self.drive_state:
+                return
+            self.drive_state = new_state
+            rpc_client.change_drive_state(stub, new_state)
+            if new_state == jetsonrpc_pb2.DIRECT_DRIVE:
+                gamepadControlOn()
+                actions_state_label['text'] = "Current state: Direct Drive"
+            elif new_state == jetsonrpc_pb2.AUTONOMY:
+                gamepadControlOff()
+                actions_state_label['text'] = "Current state: Autonomy"
+            else: # includes IDLE state
+                gamepadControlOff()
+                actions_state_label['text'] = "Current state: Idle"
 
         actions_toggle_motor_data = ratebutton_factory(actions_panel, "Pause Motor Data Collection", "Resume Motor Data Collection", threads["stream_motor_current"], rpc_client.stream_motor_current)
         actions_toggle_motor_data.pack(side=tk.TOP, pady=10, padx=10)
@@ -298,21 +313,10 @@ class MainApplication(tk.Frame):
             width=35)
         actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_gamepad_control = ttk.Button(
-            actions_panel,
-            text="Start Gamepad Control",
-            command=toggleGamepadControl,
-            width=35)
-        actions_toggle_gamepad_control.pack(side=tk.TOP, pady=(35, 10), padx=10)
 
-
-        # Action buttons (placeholders)
-        actions_action_1 = ttk.Button(actions_panel, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
-        actions_action_2 = ttk.Button(actions_panel, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
-        actions_action_3 = ttk.Button(actions_panel, text="Action 3", command=(lambda: print("Action button 3 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
         #this style ttk stuff makes a pretty red button
         style = ttk.Style()
-        style.configure('emergency.TButton', foreground='white',background="maroon",)
+        style.configure('emergency.TButton', foreground='white', background="maroon",)
         actions_toggle_emergency_stop = ttk.Button(
             actions_panel,
             text="EMERGENCY STOP",
@@ -320,8 +324,22 @@ class MainApplication(tk.Frame):
             width=35,
             style="emergency.TButton",
         )
-        actions_toggle_emergency_stop.pack(side=tk.TOP, pady=10, padx=10)
-        
+        actions_toggle_emergency_stop.pack(side=tk.TOP, pady=(10,50), padx=10)
+
+        actions_state_frame = tk.Frame(actions_panel, width=35, pady=10)
+        actions_state_frame.pack()
+        actions_state_idle = ttk.Button(actions_state_frame, text="State Idle", command=lambda: changeDriveState(jetsonrpc_pb2.DriveStateEnum.IDLE)).pack(side=tk.LEFT, padx=4)
+        actions_state_direct_drive = ttk.Button(actions_state_frame, text="State Direct Drive", command=lambda: changeDriveState(jetsonrpc_pb2.DriveStateEnum.DIRECT_DRIVE)).pack(side=tk.LEFT, padx=4)
+        actions_state_autonomy = ttk.Button(actions_state_frame, text="State Autonomy", command=lambda: changeDriveState(jetsonrpc_pb2.DriveStateEnum.AUTONOMY)).pack(side=tk.LEFT, padx=4)
+
+        actions_state_label = tk.Label(actions_panel, text="Current state: Idle", font='Pitch 20')
+        actions_state_label.pack(side=tk.TOP, pady=10)
+
+        # Action button placeholders
+        actions_action_1 = ttk.Button(actions_panel, text="Action Button 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
+        actions_action_2 = ttk.Button(actions_panel, text="Action Button 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
+
+
         # -------------------------------------------------------------------------
         # Graphs Panel
         #
@@ -505,7 +523,7 @@ if __name__ == '__main__':
     # After UI is closed:
     if gamepad_encoder.gamepad_running:
         gamepad_encoder.stop()
-        app.gamepadThread.join()
+        app.gamepad_thread.join()
 
     for k in threads.keys():
         threads[k].stop()

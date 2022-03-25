@@ -70,7 +70,13 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
             yield jetsonrpc_pb2.ArmStatus(angle=random_angle, translation=random_translation)
 
     def EmergencyStop(self, request, context):
-        print("fake_rpc_server received emergency stop!")
+        print("fake_rpc_server received EMERGENCY STOP!")
+        return jetsonrpc_pb2.Void()
+
+    def ChangeDriveState(self, request, context):
+        state = request.driveStateEnum
+        state_name = jetsonrpc_pb2.DriveStateEnum.keys()[state]
+        print("fake_rpc_server changing drive state to {} ({})".format(state, state_name))
         return jetsonrpc_pb2.Void()
 
 

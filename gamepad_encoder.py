@@ -45,7 +45,7 @@ def gamepad_val_gen():
         else:
             print("gamepad_encoder sending motor values:", values)
             prev_encoded_val = encoded_val
-            yield jetsonrpc_pb2.MotorCmd(values=encoded_val)
+            yield jetsonrpc_pb2.DDCommand(values=encoded_val)
     
     if detected_platform == "LINUX": # only linux driver needs a "stop()" command
         gamepad_driver_linux.stop()
@@ -61,7 +61,7 @@ def dummy_val_gen():
         deposit = random.choice([0, 1, 2])
 
         print(left, right, act1, act2, ladder, deposit)
-        yield jetsonrpc_pb2.MotorCmd(values=encode_values(
+        yield jetsonrpc_pb2.DDCommand(values=encode_values(
             left, right, act1, act2, ladder, deposit
         ))
         time.sleep(0.1)
@@ -72,7 +72,7 @@ def start(host, port):
     gamepad_running = True
     with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
         stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-        response = stub.SendMotorCmd(gamepad_val_gen())
+        response = stub.SendDDCommand(gamepad_val_gen())
         # response = stub.SendMotorCmd(dummy_val_gen()) # for sending fake data
         print(response)
 

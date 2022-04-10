@@ -233,7 +233,7 @@ class MainApplication(tk.Frame):
         def gamepadControlOn():
             if self.is_using_gamepad:
                 return
-            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
+            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT, stub))
             self.gamepad_thread.start()
             self.is_using_gamepad = True
 

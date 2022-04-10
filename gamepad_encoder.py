@@ -66,15 +66,13 @@ def dummy_val_gen():
         ))
         time.sleep(0.1)
 
-def start(host, port):
+def start(host, port, stub):
     print("gamepad_encoder starting...")
     global gamepad_running
     gamepad_running = True
-    with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
-        stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-        response = stub.SendDDCommand(gamepad_val_gen())
-        # response = stub.SendMotorCmd(dummy_val_gen()) # for sending fake data
-        print(response)
+    response = stub.SendDDCommand(gamepad_val_gen())
+    # response = stub.SendMotorCmd(dummy_val_gen()) # for sending fake data
+    print(response)
 
 def stop():
     print("gamepad_encoder stopping...")
@@ -83,9 +81,9 @@ def stop():
 
 
 if __name__ == '__main__':
-    # host = "10.0.0.60"
-    # host = "172.27.172.34"
-    host = "127.0.0.1"
+    host = "localhost"
     port = 50051
 
-    start(host, port)
+    with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
+        stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+        start(host, port, stub)

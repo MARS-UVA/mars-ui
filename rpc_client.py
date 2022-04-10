@@ -41,6 +41,13 @@ def send_motor_cmd(stub: STUB, gen):
     return stub.StreamMotorCurrent(gen)
 
 
+def emergency_stop(stub: STUB):
+    stub.EmergencyStop(jetsonrpc_pb2.Void())
+
+def change_drive_state(stub: STUB, state):
+    stub.ChangeDriveState(jetsonrpc_pb2.DriveState(dse=state))
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()

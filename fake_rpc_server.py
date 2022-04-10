@@ -11,6 +11,34 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
 class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
 
+    # Receiving data:
+
+    def SendMotorCmd(self, request, context):
+        print("received motor command...")
+        # Copied from https://github.com/MARS-UVA/mars-ros/blob/master/src/rpc-server/src/grpc-server.cpp function SendMotorCmd
+        for cmd in request:
+            raw = cmd.values
+            motors = [-1]*8
+            motors[7] = (raw & 0b11) * 100
+            raw >>= 2
+            motors[6] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[5] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[4] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[3] = (raw & 0b111111) << 2
+            motors[2] = (raw & 0b111111) << 2
+            raw >>= 6
+            motors[1] = raw << 2
+            motors[0] = raw << 2
+
+            print("received motor command:", motors)
+
+        return jetsonrpc_pb2.Void()
+
+    # Sending data:
+
     def StreamIMU(self, request, context):
         while True:
             time.sleep(1.0/request.rate)
@@ -41,6 +69,16 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
             random_translation = random.random() * 2
             yield jetsonrpc_pb2.ArmStatus(angle=random_angle, translation=random_translation)
 
+    def EmergencyStop(self, request, context):
+        print("fake_rpc_server received EMERGENCY STOP!")
+        return jetsonrpc_pb2.Void()
+
+    def ChangeDriveState(self, request, context):
+        state = request.driveStateEnum
+        state_name = jetsonrpc_pb2.DriveStateEnum.keys()[state]
+        print("fake_rpc_server changing drive state to {} ({})".format(state, state_name))
+        return jetsonrpc_pb2.Void()
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -50,5 +88,6 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == '__main__':
+    print("fake_rpc_server starting...")
     logging.basicConfig()
     serve()

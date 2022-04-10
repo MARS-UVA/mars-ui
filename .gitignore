@@ -11,3 +11,4 @@ node_modules
 *.proto
 .idea
 .DS_Store
+env

@@ -320,7 +320,7 @@ class MainApplication(tk.Frame):
 
         # Motor Currents graph. Note that mc stands for motor current.
         graphs_mc_checks = tk.Frame(graphs_mc_frame, background="pink")
-        graphs_mc_vars = [tk.BooleanVar(value=True) for i in range(8)]
+        graphs_mc_vars = [tk.BooleanVar(value=True) for i in range(11)]
 
         for i in range(len(graphs_mc_vars)):
             c = ttk.Checkbutton(
@@ -340,7 +340,6 @@ class MainApplication(tk.Frame):
             graphs_mc_frame,
             get_data_function=mc_data
         )
-        graphs_mc_lineGraph.ax.set_title("Motor Current")
         graphs_mc_checks.pack(side=tk.TOP)
 
         # Robotic Arm Length graph.
@@ -399,10 +398,11 @@ def formatHeroFeedback(fb):
         return "None"
     s = ""
     currents = list(fb.currents)
-    for i in range(1, 9):
-        s += "Motor {}:{:>6} A\n".format(i, currents[i - 1]+3) # TODO this right-align formatting doesn't work because the font isn't monospaced
+    for i in range(0, 11):
+        s += "Motor {}:{:>6} A\n".format(i, currents[i]) # TODO this right-align formatting doesn't work because the font isn't monospaced
 
-    s += "\nArm Angle:   {:.2f} °\n".format(fb.bucketLadderAngle)
+    s += "\nArm Angle L:   {:.2f} °\n".format(fb.bucketLadderAngleL)
+    s += "Arm Angle R:   {:.2f} °\n".format(fb.bucketLadderAngleR)
     s += "Deposit bin:   Raised={}, Lowered={}".format(fb.depositBinRaised, fb.depositBinLowered)
     return s
 

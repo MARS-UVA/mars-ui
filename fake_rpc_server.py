@@ -58,9 +58,10 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
     def StreamHeroFeedback(self, request, context):
         while True:
             time.sleep(1.0/request.rate)
-            currents = bytes([random.randint(0, 10) for i in range(8)]) # 8 motors
-            angle = random.randint(0, 90) + 0.5
-            yield jetsonrpc_pb2.HeroFeedback(currents=currents, bucketLadderAngle=angle, depositBinRaised=False, depositBinLowered=False)
+            currents = bytes([random.randint(0, 10) for i in range(11)]) # 11 motor currents
+            angleL = random.randint(0, 90) + 0.5
+            angleR = random.randint(0, 90) + 0.5
+            yield jetsonrpc_pb2.HeroFeedback(currents=currents, bucketLadderAngleL=angleL, bucketLadderAngleR=angleR, depositBinRaised=False, depositBinLowered=False)
 
     def EmergencyStop(self, request, context):
         print("fake_rpc_server received EMERGENCY STOP!")

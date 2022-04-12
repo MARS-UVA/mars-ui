@@ -18,13 +18,13 @@ class LineGraph(tk.Frame):
       tk.Frame.__init__(self, parent)
 
       self.datalen = 100 # how many data points are displayed on the graph
-      self.datacolumns = 8 # number of series to graph (8 for 8 motor currents)
+      self.datacolumns = 11 # number of series to graph (11 motor currents)
       self.data = deque([[0]*self.datacolumns for i in range(self.datalen)], maxlen=self.datalen)
 
       self.fig = plt.Figure()#figsize=(6,5), dpi=100)
       self.ax = self.fig.add_subplot(111)
-      self.ax.set_title('X vs. Y')
-      self.ax.axis([0, self.datalen, 0, 20])
+      self.ax.set_title('Motor Currents')
+      self.ax.axis([0, self.datalen, -2, 20])
 
       self.canvas = FigureCanvasTkAgg(self.fig, parent)
       self.canvas.get_tk_widget().pack() #side=tk.LEFT, fill=tk.BOTH)

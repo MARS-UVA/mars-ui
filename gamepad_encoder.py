@@ -3,6 +3,7 @@ import grpc
 import numpy as np
 import platform
 import sys
+import rpc_client
 
 from protos import jetsonrpc_pb2_grpc
 from protos import jetsonrpc_pb2
@@ -85,5 +86,14 @@ if __name__ == '__main__':
     port = 50051
 
     with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
-        stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
-        start(host, port, stub)
+        try:
+            stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
+            print("Changing to drive state DIRECT_DRIVE...")
+            rpc_client.change_drive_state(stub, jetsonrpc_pb2.DriveStateEnum.DIRECT_DRIVE)
+
+            start(host, port, stub)
+        except KeyboardInterrupt:
+            stop()
+        finally:
+            print("Changing to drive state IDLE...")
+            rpc_client.change_drive_state(stub, jetsonrpc_pb2.DriveStateEnum.IDLE)

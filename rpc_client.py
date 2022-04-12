@@ -1,12 +1,11 @@
 import grpc
 import cv2
 import numpy as np
+import typing
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
-import typing
-import struct
 
-STUB = jetsonrpc_pb2_grpc.JetsonRPCStub
+STUB = jetsonrpc_pb2_grpc.JetsonRPCStub # this is a type
 
 
 def stream_image(stub: STUB, rate=30):

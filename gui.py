@@ -52,12 +52,12 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     r.pack(side=tk.LEFT, pady=2, padx=2)
 
     def rate_command():
-        rate = 1
+        rate = DEFAULT_RPC_RATE
         try:
             rate = int(r.get())
         except ValueError:
             r.delete(0, tk.END)
-            r.insert(0, "1")
+            r.insert(0, str(DEFAULT_RPC_RATE))
         # print("updating rate:", rate)
         datathread.updateGenerator(rpc_function(stub, rate=rate))
     c = ttk.Button(frame, text="✓", command=rate_command, width=2)
@@ -110,7 +110,6 @@ class MainApplication(tk.Frame):
         # This panel will be used to display raw data in real time. The only
         # tab on this panel that has been implemented as of 3/5/20 is Motor
         # Current.
-        #
         # Naming convention: data_<tab name (if any)>_<component name>
 
         # Title
@@ -177,7 +176,6 @@ class MainApplication(tk.Frame):
         #
         # This panel will contain a set of action buttons to control the robot
         # and/or the UI.
-        #
         # Naming convention: actions_<component name>
 
         # Title
@@ -270,7 +268,7 @@ class MainApplication(tk.Frame):
         actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
 
-        #this style ttk stuff makes a pretty red button
+        # This ttk style makes a pretty red button for e-stop
         style = ttk.Style()
         style.configure('emergency.TButton', foreground='white', background="maroon",)
         actions_toggle_emergency_stop = ttk.Button(
@@ -300,7 +298,6 @@ class MainApplication(tk.Frame):
         # Graphs Panel
         #
         # This panel will contain graphs that display data in real time. 
-        #
         # Naming convention: graphs_<tab name (if any)>_<component name>
 
         # Title
@@ -310,8 +307,8 @@ class MainApplication(tk.Frame):
         # Notebook and Tabs
         graphs_notebook = ttk.Notebook(graph_panel)
         graphs_mc_frame = tk.Frame(graphs_notebook, background="white")
-        graphs_2_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
-        graphs_3_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
+        graphs_2_frame = tk.Frame(graphs_notebook, background="white")
+        graphs_3_frame = tk.Frame(graphs_notebook, background="white") # dummy tab
 
         graphs_notebook.add(graphs_mc_frame, text="Graph 1")
         graphs_notebook.add(graphs_2_frame, text="Graph 2")
@@ -319,45 +316,19 @@ class MainApplication(tk.Frame):
         graphs_notebook.pack(expand=1, fill='both')
 
         # Motor Currents graph. Note that mc stands for motor current.
-        graphs_mc_checks = tk.Frame(graphs_mc_frame, background="pink")
-        graphs_mc_vars = [tk.BooleanVar(value=True) for i in range(11)]
-
-        for i in range(len(graphs_mc_vars)):
-            c = ttk.Checkbutton(
-                graphs_mc_checks,
-                text="Motor " + str(i + 1),
-                variable=graphs_mc_vars[i])
-            c.grid(row=0, column=i)
-
-        def mc_data():
+        def mc_update_data():
             d = threads["stream_hero_feedback"].get_recent_data()
-            vs = graphs_mc_vars
-            if d is None:
-                return np.array([0 for _ in vs])
-            return np.array([data if (var.get() == True) else 0 for data, var in zip(list(d.currents), vs)])
+            return list(d.currents)
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=mc_data
+            get_data_function=mc_update_data
         )
-        graphs_mc_checks.pack(side=tk.TOP)
 
         # Robotic Arm Length graph.
-        graphs_2_checks = tk.Frame(graphs_2_frame, background="pink")
-        graphs_2_vars = [tk.IntVar() for i in range(8)]
-
-        for i in range(len(graphs_2_vars)):
-            c = ttk.Checkbutton(
-                graphs_2_checks,
-                text="Series " + str(i + 1) + " ",
-                variable=graphs_2_vars[i])
-            c.grid(row=0, column=i)
-
         graphs_2_ArmGraph = gui_graph.ArmGraph(
             graphs_2_frame,
         )
-        graphs_2_ArmGraph.ax.set_title("Length of Robotic Arm")
-        graphs_2_checks.pack(side=tk.TOP)
 
 
 def cam_stream():

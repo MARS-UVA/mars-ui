@@ -20,7 +20,6 @@ if sys.platform.startswith("linux"): detected_platform = "LINUX"
 def gamepad_val_gen():
     if detected_platform == "WINDOWS":
         print("gamepad_encoder starting windows driver")
-        # from gamepad_driver_windows import get_gamepad_values
         from gamepad_driver_windows import get_gamepad_values, joyGetPosEx, p_info
     elif detected_platform == "LINUX":
         print("gamepad_encoder starting linux driver")
@@ -34,15 +33,14 @@ def gamepad_val_gen():
     prev_encoded_val = None
     while gamepad_running:
         if detected_platform == "WINDOWS" and joyGetPosEx(0, p_info) != 0: 
-            # For some reason, this is necessary for the windows code to update the gamepad values
+            # Running this joyGetPosEx check is necessary for the windows code to update the gamepad values
             print("Error: gamepad_encoder gamepad disconnected")
             break
 
         values = get_gamepad_values()
-        encoded_val = encode_values(*values)
-        if prev_encoded_val == encoded_val:  # don't send messages if gamepad value hasn't changed
-            # print("skipping, e_v=", encoded_val, "v=", values)
-            time.sleep(0.01)
+        encoded_val = encode_values(*values) # python "spread"/"splat" operator
+        if prev_encoded_val == encoded_val: # don't send messages if gamepad value hasn't changed
+            time.sleep(0.05) # TODO adjust this rate to balance saving bandwidth and maintaining robot control. This could also be a parameter that gets set and passed in gui.py somehow
         else:
             print("gamepad_encoder sending motor values:", values)
             prev_encoded_val = encoded_val
@@ -54,25 +52,25 @@ def gamepad_val_gen():
 def dummy_val_gen():
     import random
     while True:
-        left = random.randint(0, 200)  # left
-        right = random.randint(0, 200)  # right
-        act1 = random.randint(0, 200)  # actuator1
-        act2 = random.randint(0, 200)  # actuator2
-        ladder = random.randint(0, 200)  # arm
-        deposit = random.choice([0, 1, 2])
+        m1 = random.randint(0, 200)
+        m2 = random.randint(0, 200)
+        bucket_ladder_angle = random.randint(0, 200)
+        bucket_ladder_extension = random.randint(0, 200)
+        bucket_ladder_chain = random.randint(0, 200)
+        deposit_angle = random.choice([0, 100, 200])
+        conveyor = random.choice([0, 100, 200])
 
-        print(left, right, act1, act2, ladder, deposit)
-        yield jetsonrpc_pb2.DDCommand(values=encode_values(
-            left, right, act1, act2, ladder, deposit
-        ))
+        yield jetsonrpc_pb2.DDCommand(values=
+            encode_values(m1, m2, bucket_ladder_angle, bucket_ladder_extension, bucket_ladder_chain, deposit_angle, conveyor)
+        )
         time.sleep(0.1)
 
-def start(host, port, stub):
+def start(stub):
     print("gamepad_encoder starting...")
     global gamepad_running
     gamepad_running = True
     response = stub.SendDDCommand(gamepad_val_gen())
-    # response = stub.SendMotorCmd(dummy_val_gen()) # for sending fake data
+    # response = stub.SendDDCommand(dummy_val_gen()) # for sending fake data - will probably destroy robot if actually used
     print(response)
 
 def stop():
@@ -82,16 +80,16 @@ def stop():
 
 
 if __name__ == '__main__':
-    host = "localhost"
-    port = 50051
+    HOST = "localhost"
+    PORT = 50051
 
-    with grpc.insecure_channel("{}:{}".format(host, port)) as channel:
+    with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
         try:
             stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
             print("Changing to drive state DIRECT_DRIVE...")
             rpc_client.change_drive_state(stub, jetsonrpc_pb2.DriveStateEnum.DIRECT_DRIVE)
 
-            start(host, port, stub)
+            start(stub)
         except KeyboardInterrupt:
             stop()
         finally:

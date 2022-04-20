@@ -32,7 +32,7 @@ codes = [ # These are listed here just to initialize the state dictionary
 ]
 
 state_update_process = None
-sharedstate = multiprocessing.Array("i", [100, 100, 100, 100, 100, 1])
+sharedstate = multiprocessing.Array("i", [100, 100, 100, 100, 100, 100, 100])
 
 
 def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
@@ -43,31 +43,38 @@ def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
     return a
 
 def format_gamepad_values(state):
-        x = (state["ABS_X"] - 0)/32768.0
-        y = (state["ABS_Y"] - 0)/32768.0 * -1
+        x = (state["ABS_X"])/32768.0
+        y = (state["ABS_Y"])/32768.0 * -1
         lt = (state["ABS_Z"])/255.0
         rt = (state["ABS_RZ"])/255.0
-        rx = (state["ABS_RX"] - 0)/32768.0
-        ry = (state["ABS_RY"] - 0)/32768.0
+        rx = (state["ABS_RX"])/32768.0
+        ry = (state["ABS_RY"])/32768.0
 
         if abs(x) > abs(y):
             y = 0
         else:
             x = 0
 
-        dbin = 1
+        deposit_bin_angle = 100
         if state["BTN_WEST"] == 1: # This should be BTN_NORTH. I don't know why it's switched. Is it controller/computer dependent?
-            dbin = 2
-        if state["BTN_SOUTH"] == 1:
-            dbin = 0
+            deposit_bin_angle = 200
+        elif state["BTN_SOUTH"] == 1:
+            deposit_bin_angle = 0
+
+        conveyor = 100
+        if state["BTN_EAST"] == 1:
+            conveyor = 200
+        elif state["BTN_NORTH"] == 1: # See note above about BTN_WEST and BTN_NORTH being switched
+            conveyor = 0
 
         args = [
-            int(thresh(ry-rx, 0.1) * 100 + 100), # 0-200, neutral=100 (left stick)
-            int(thresh(ry+rx, 0.1) * 100 + 100),
-            int(thresh(x, 0.1) * 100 + 100), # 0-200, neutral=100 (right stick)
-            int(thresh(y, 0.1) * 100 + 100), # unused for old robot
-            int((-(lt + 1) + (rt + 1)) * 100 + 100), # left trigger is backwards, right is forwards
-            dbin
+            int(thresh(-ry+rx, 0.1) * 100 + 100), # left stick mixed
+            int(thresh(-ry-rx, 0.1) * 100 + 100), # left stick mixed
+            int(thresh(x, 0.1) * 100 + 100), # right stick x axis
+            int(thresh(y, 0.1) * 100 + 100), # right stick y axis
+            int((-(lt + 1) + (rt + 1)) * 100 + 100), # left trigger is backwards (0), right is forwards (200)
+            deposit_bin_angle,
+            conveyor
         ]
         return args
 
@@ -112,7 +119,7 @@ if __name__ == "__main__":
     try:
         while True:
             print(get_gamepad_values())
-            time.sleep(0.02)
+            time.sleep(0.05)
     except KeyboardInterrupt:
         print("except KeyboardInterrupt")
         stop()

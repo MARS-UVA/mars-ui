@@ -38,7 +38,7 @@ class LineGraph(tk.Frame):
       self.fig = plt.Figure()#figsize=(6,5), dpi=100)
       self.ax = self.fig.add_subplot(111)
       self.ax.set_title("Motor Currents")
-      self.ax.axis([0, self.datalen, -2, 20])
+      self.ax.axis([0, self.datalen, 0, 255])
       self.plot = [self.ax.plot([0]*self.datalen)[0] for _ in range(self.datacolumns)]
 
       self.canvas = FigureCanvasTkAgg(self.fig, self.main_frame)

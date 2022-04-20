@@ -318,6 +318,8 @@ class MainApplication(tk.Frame):
         # Motor Currents graph. Note that mc stands for motor current.
         def mc_update_data():
             d = threads["stream_hero_feedback"].get_recent_data()
+            if d is None:
+                return None
             return list(d.currents)
 
         graphs_mc_lineGraph = gui_graph.LineGraph(

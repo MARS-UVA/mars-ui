@@ -25,7 +25,7 @@ matplotlib.use("TkAgg")
 
 DEFAULT_RPC_RATE = 10
 
-HOST = "localhost"
+HOST = "172.27.172.34"
 PORT = "50051"
 
 stub = None
@@ -231,7 +231,7 @@ class MainApplication(tk.Frame):
         def gamepadControlOn():
             if self.is_using_gamepad:
                 return
-            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT, stub))
+            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(stub,))
             self.gamepad_thread.start()
             self.is_using_gamepad = True
 

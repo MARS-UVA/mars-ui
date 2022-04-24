@@ -13,8 +13,8 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
 
     # Receiving data:
 
-    def SendMotorCmd(self, request, context):
-        print("received motor command...")
+    def SendDDCommand(self, request, context):
+        print("received motor command request...")
         # Copied from https://github.com/MARS-UVA/mars-ros/blob/master/src/rpc-server/src/grpc-server.cpp function SendMotorCmd
         for cmd in request:
             raw = cmd.values
@@ -55,26 +55,20 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
             ret, data = cv2.imencode(".jpg", frame)
             yield jetsonrpc_pb2.Image(data=data.tobytes())
 
-    def StreamMotorCurrent(self, request, context):
+    def StreamHeroFeedback(self, request, context):
         while True:
             time.sleep(1.0/request.rate)
-            randoms = np.array([random.randint(0, 10) for i in range(8)], 'uint8') # 8 motors
-            randoms = randoms.view('uint64') # combine into one value, as specified by the proto file
-            yield jetsonrpc_pb2.MotorCurrent(values=randoms[0])
-
-    def StreamArmStatus(self, request, context):
-        while True:
-            time.sleep(1.0/request.rate)
-            random_angle = random.random() * 45
-            random_translation = random.random() * 2
-            yield jetsonrpc_pb2.ArmStatus(angle=random_angle, translation=random_translation)
+            currents = bytes([random.randint(0, 10) for i in range(11)]) # 11 motor currents
+            angleL = random.randint(0, 90) + 0.5
+            angleR = random.randint(0, 90) + 0.5
+            yield jetsonrpc_pb2.HeroFeedback(currents=currents, bucketLadderAngleL=angleL, bucketLadderAngleR=angleR, depositBinRaised=False, depositBinLowered=False)
 
     def EmergencyStop(self, request, context):
         print("fake_rpc_server received EMERGENCY STOP!")
         return jetsonrpc_pb2.Void()
 
     def ChangeDriveState(self, request, context):
-        state = request.driveStateEnum
+        state = request.dse
         state_name = jetsonrpc_pb2.DriveStateEnum.keys()[state]
         print("fake_rpc_server changing drive state to {} ({})".format(state, state_name))
         return jetsonrpc_pb2.Void()

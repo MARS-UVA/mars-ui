@@ -1,14 +1,12 @@
-from turtle import bgcolor, fillcolor
 import gui_datathread
 import gui_graph
-import gamepad_encoder # For controlling the robot using the gamepad
+import gamepad_encoder
 import threading
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,10 +24,13 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
+DEFAULT_RPC_RATE = 10
+
 HOST = "localhost"
 PORT = "50051"
 
 stub = None
+
 
 def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     frame = tk.Frame(parent)
@@ -48,16 +49,16 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     b.pack(side=tk.LEFT, pady=2, padx=2)
 
     r = tk.Entry(frame, width=6) # Could do validation like this: https://riptutorial.com/tkinter/example/27780/adding-validation-to-an-entry-widget
-    r.insert(0, "30")
+    r.insert(0, str(DEFAULT_RPC_RATE)) # set the text of the default value - the actual value is set to the default when the datathread is created
     r.pack(side=tk.LEFT, pady=2, padx=2)
 
     def rate_command():
-        rate = 1
+        rate = DEFAULT_RPC_RATE
         try:
             rate = int(r.get())
         except ValueError:
             r.delete(0, tk.END)
-            r.insert(0, "1")
+            r.insert(0, str(DEFAULT_RPC_RATE))
         # print("updating rate:", rate)
         datathread.updateGenerator(rpc_function(stub, rate=rate))
     c = ttk.Button(frame, text="✓", command=rate_command, width=2)
@@ -136,7 +137,6 @@ class MainApplication(tk.Frame):
         # This panel will be used to display raw data in real time. The only
         # tab on this panel that has been implemented as of 3/5/20 is Motor
         # Current.
-        #
         # Naming convention: data_<tab name (if any)>_<component name>
 
         # Title
@@ -146,64 +146,34 @@ class MainApplication(tk.Frame):
         # Notebook and tabs
         data_notebook = ttk.Notebook(data_panel)
 
-        data_mc_frame = tk.Frame(data_notebook, background="white")  # mc stands for motor current
-        data_arm_frame = tk.Frame(data_notebook, background="white")
-        data_basket_frame = tk.Frame(data_notebook, background="white")
+        data_feedback_frame = tk.Frame(data_notebook, background="white")  # mc stands for motor current
         data_cam_frame = tk.Frame(data_notebook, background="white")
         data_IMU_frame = tk.Frame(data_notebook, background="white")
 
-        data_notebook.add(data_mc_frame, text="Motors Currents")
-        data_notebook.add(data_arm_frame, text="Arm")
-        data_notebook.add(data_basket_frame, text="Basket")
+        data_notebook.add(data_feedback_frame, text="Hero Feedback")
         data_notebook.add(data_IMU_frame, text="IMU Data")
         data_notebook.add(data_cam_frame, text="Camera")
         data_notebook.pack(expand=1, fill='both')
 
-        # Motor Currents tab. All labels are defined as instance variables
+        # Hero Feedback tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
-        self.data_mc_title = tk.Label(
-            data_mc_frame, text="Motor Currents", font=("Pitch", 25))
+        self.data_feedback_title = tk.Label(
+            data_feedback_frame, text="Hero Feedback", font=("Pitch", 25))
         # The .grid function is used to designate where this label is located
-        self.data_mc_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_feedback_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
 
-        self.data_mc_status = tk.Label(
-            data_mc_frame,
+        self.data_feedback_status = tk.Label(
+            data_feedback_frame,
             text="STATUS: Collecting Data",
             font='Pitch 20 bold')
-        self.data_mc_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
+        self.data_feedback_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
 
-        self.data_mc_body = tk.Label(
-            data_mc_frame,
+        self.data_feedback_body = tk.Label(
+            data_feedback_frame,
             text="NA",
             font=("Pitch", 20),
             justify=tk.LEFT)
-        self.data_mc_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
-
-        # Arm Status tab. All labels are defined as instance variables
-        # so they can be accessed by updateDataPanel().
-        self.data_arm_title = ttk.Label(
-            data_arm_frame, text="Arm Status", font=("Pitch", 25))
-        self.data_arm_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
-
-        self.data_arm_status = tk.Label(
-            data_arm_frame,
-            text="STATUS: Collecting Data",
-            font='Pitch 20 bold')
-        self.data_arm_status.grid(row=1, column=0, padx=10, pady=3, sticky=tk.W)
-
-        self.data_arm_body = tk.Label(
-            data_arm_frame,
-            text="NA",
-            font=("Pitch", 20),
-            justify=tk.LEFT)
-        self.data_arm_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
-
-        self.data_basket_title = ttk.Label(
-            data_basket_frame, text="Basket Angle: 15°", font=("Tahoma", 25))
-        self.data_basket_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
-
-        self.data_cam_title = ttk.Label(data_cam_frame, text="Camera Stream", font=("Tahoma", 25))
-        self.data_cam_title.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        self.data_feedback_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # IMU Data tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
@@ -233,7 +203,6 @@ class MainApplication(tk.Frame):
         #
         # This panel will contain a set of action buttons to control the robot
         # and/or the UI.
-        #
         # Naming convention: actions_<component name>
 
         # Title
@@ -243,29 +212,17 @@ class MainApplication(tk.Frame):
 
         # Pauses or resumes motor current data collection. Updates the text
         # on mc_toggle button.
-        def toggleMotorCurrentThread():
-            if "stream_motor_current" not in threads:
-                print("stream_motor_current not in threads")
+        def toggleHeroFeedbackThread():
+            if "stream_hero_feedback" not in threads:
+                print("stream_hero_feedback not in threads")
                 return
 
-            if threads["stream_motor_current"].isCollecting():
-                threads["stream_motor_current"].stopCollection()
-                actions_toggle_motor_data['text'] = "Resume Motor Data Collection"
+            if threads["stream_hero_feedback"].isCollecting():
+                threads["stream_hero_feedback"].stopCollection()
+                actions_toggle_hero_feedback['text'] = "Resume Feedback Collection"
             else:
-                threads["stream_motor_current"].resumeCollection()
-                actions_toggle_motor_data['text'] = "Pause Motor Data Collection"
-
-        def toggleArmStatusThread():
-            if "stream_arm_status" not in threads:
-                print("stream_arm_status not in threads")
-                return
-
-            if threads["stream_arm_status"].isCollecting():
-                threads["stream_arm_status"].stopCollection()
-                actions_toggle_arm_data['text'] = "Resume Arm Data Collection"
-            else:
-                threads["stream_arm_status"].resumeCollection()
-                actions_toggle_arm_data['text'] = "Pause Arm Data Collection"
+                threads["stream_hero_feedback"].resumeCollection()
+                actions_toggle_hero_feedback['text'] = "Pause Feedback Collection"
 
         def toggleCamDataThread():
             if "stream_cam_data" not in threads:
@@ -301,7 +258,7 @@ class MainApplication(tk.Frame):
         def gamepadControlOn():
             if self.is_using_gamepad:
                 return
-            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT,))
+            self.gamepad_thread = threading.Thread(target=gamepad_encoder.start, args=(HOST, PORT, stub))
             self.gamepad_thread.start()
             self.is_using_gamepad = True
 
@@ -320,11 +277,8 @@ class MainApplication(tk.Frame):
                 gamepadControlOff()
                 actions_state_label['text'] = "Current state: Idle"
 
-        actions_toggle_motor_data = ratebutton_factory(actions_panel, "Pause Motor Data Collection", "Resume Motor Data Collection", threads["stream_motor_current"], rpc_client.stream_motor_current)
-        actions_toggle_motor_data.pack(side=tk.TOP, pady=10, padx=10)
-
-        actions_toggle_arm_data = ratebutton_factory(actions_panel, "Pause Arm Data Collection", "Resume Arm Data Collection", threads["stream_arm_status"], rpc_client.stream_arm_status)
-        actions_toggle_arm_data.pack(side=tk.TOP, pady=10, padx=10)
+        actions_toggle_hero_feedback = ratebutton_factory(actions_panel, "Pause Feedback Collection", "Resume Feedback Collection", threads["stream_hero_feedback"], rpc_client.stream_hero_feedback)
+        actions_toggle_hero_feedback.pack(side=tk.TOP, pady=10, padx=10)
 
         actions_toggle_IMU_data = ttk.Button(
             actions_panel,
@@ -341,7 +295,7 @@ class MainApplication(tk.Frame):
         actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
 
-        #this style ttk stuff makes a pretty red button
+        # This ttk style makes a pretty red button for e-stop
         style = ttk.Style()
         style.configure('emergency.TButton', foreground='white', background="maroon",)
         actions_toggle_emergency_stop = ttk.Button(
@@ -385,7 +339,6 @@ class MainApplication(tk.Frame):
         # Graphs Panel
         #
         # This panel will contain graphs that display data in real time. 
-        #
         # Naming convention: graphs_<tab name (if any)>_<component name>
 
         # Title
@@ -395,8 +348,8 @@ class MainApplication(tk.Frame):
         # Notebook and Tabs
         graphs_notebook = ttk.Notebook(graph_panel)
         graphs_mc_frame = tk.Frame(graphs_notebook, background="white")
-        graphs_2_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
-        graphs_3_frame = tk.Frame(graphs_notebook, background="white")  # dummy tab
+        graphs_2_frame = tk.Frame(graphs_notebook, background="white")
+        graphs_3_frame = tk.Frame(graphs_notebook, background="white") # dummy tab
 
         graphs_notebook.add(graphs_mc_frame, text="Graph 1")
         graphs_notebook.add(graphs_2_frame, text="Graph 2")
@@ -404,46 +357,21 @@ class MainApplication(tk.Frame):
         graphs_notebook.pack(expand=1, fill='both')
 
         # Motor Currents graph. Note that mc stands for motor current.
-        graphs_mc_checks = tk.Frame(graphs_mc_frame, background="pink")
-        graphs_mc_vars = [tk.BooleanVar(value=True) for i in range(8)]
-
-        for i in range(len(graphs_mc_vars)):
-            c = ttk.Checkbutton(
-                graphs_mc_checks,
-                text="Motor " + str(i + 1),
-                variable=graphs_mc_vars[i])
-            c.grid(row=0, column=i)
-
-        def mc_data():
-            d = threads["stream_motor_current"].get_recent_data()
-            vs = graphs_mc_vars
+        def mc_update_data():
+            d = threads["stream_hero_feedback"].get_recent_data()
             if d is None:
-                return np.array([0 for _ in vs])
-            return np.array([data if (var.get() == True) else 0 for data, var in zip(d.view('float32'), vs)])
+                return None
+            return list(d.currents)
 
         graphs_mc_lineGraph = gui_graph.LineGraph(
             graphs_mc_frame,
-            get_data_function=mc_data
+            get_data_function=mc_update_data
         )
-        graphs_mc_lineGraph.ax.set_title("Motor Current")
-        graphs_mc_checks.pack(side=tk.TOP)
 
         # Robotic Arm Length graph.
-        graphs_2_checks = tk.Frame(graphs_2_frame, background="pink")
-        graphs_2_vars = [tk.IntVar() for i in range(8)]
-
-        for i in range(len(graphs_2_vars)):
-            c = ttk.Checkbutton(
-                graphs_2_checks,
-                text="Series " + str(i + 1) + " ",
-                variable=graphs_2_vars[i])
-            c.grid(row=0, column=i)
-
         graphs_2_ArmGraph = gui_graph.ArmGraph(
             graphs_2_frame,
         )
-        graphs_2_ArmGraph.ax.set_title("Length of Robotic Arm")
-        graphs_2_checks.pack(side=tk.TOP)
 
 
 def cam_stream():
@@ -460,54 +388,36 @@ def cam_stream():
 
 
 def updateDataPanel():
-    if threads["stream_motor_current"].isCollecting():
-        currents = threads["stream_motor_current"].get_recent_data()
-        app.data_mc_status['text'] = "STATUS: Collecting Data"
-        text = formatMotorCurrents(currents)
-        app.data_mc_body['text'] = text
+    if threads["stream_hero_feedback"].isCollecting():
+        currents = threads["stream_hero_feedback"].get_recent_data()
+        app.data_feedback_status['text'] = "STATUS: Collecting Data"
+        app.data_feedback_body['text'] = formatHeroFeedback(currents)
     else:
-        app.data_mc_status['text'] = "STATUS: Paused"
-        app.data_mc_body['text'] = ""
-    if threads["stream_arm_status"].isCollecting():
-        armdata = threads["stream_arm_status"].get_recent_data()
-        app.data_arm_status['text'] = "STATUS: Collecting Data"
-        text = formatArmStatus(armdata)
-        app.data_arm_body['text'] = text
-    else:
-        app.data_arm_status['text'] = "STATUS: Paused"
-        app.data_arm_body['text'] = ""
+        app.data_feedback_status['text'] = "STATUS: Paused"
+        app.data_feedback_body['text'] = "Paused"
+
     if threads["stream_IMU_data"].isCollecting():
         IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
         app.data_IMU_status['text'] = "STATUS: Collecting Data"
-        text = formatIMUData(IMU_data)
-        app.data_IMU_body['text'] = text
+        app.data_IMU_body['text'] = formatIMUData(IMU_data)
     else:
         app.data_IMU_status['text'] = "STATUS: Paused"
-        app.data_IMU_body['text'] = ""
+        app.data_IMU_body['text'] = "Paused"
+
     app.after(500, updateDataPanel)
 
 
-def formatMotorCurrents(currentsCombined):
-    if currentsCombined is None:
-        return "NA"
-    currents = currentsCombined.view('float32')
+def formatHeroFeedback(fb):
+    if fb is None:
+        return "None"
     s = ""
-    for i in range(1, 9):
-        s += "Motor " + str(i) + ":     "
-        s += "{:0<6.3f}".format(currents[i - 1]) + " A\n\n"
-    return s
+    currents = list(fb.currents)
+    for i in range(0, 11):
+        s += "Motor {}:{:>6} A\n".format(i, currents[i]) # TODO this right-align formatting doesn't work because the font isn't monospaced
 
-
-def formatArmStatus(armdata):
-    if armdata is None:
-        return "NA"
-    angle, translation = armdata
-    s = ""
-
-    s += "Arm Angle:     "
-    s += "{:0<6.3f}".format(angle) + " Degrees\n\n"
-    s += "Arm Translation:     "
-    s += "{:0<6.3f}".format(translation) + "  M\n\n"
+    s += "\nArm Angle L:   {:.2f} °\n".format(fb.bucketLadderAngleL)
+    s += "Arm Angle R:   {:.2f} °\n".format(fb.bucketLadderAngleR)
+    s += "Deposit bin:   Raised={}, Lowered={}".format(fb.depositBinRaised, fb.depositBinLowered)
     return s
 
 
@@ -540,10 +450,8 @@ if __name__ == '__main__':
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}
-    threads["stream_motor_current"] = gui_datathread.DataThread("datathread for stream_motor_current", rpc_client.stream_motor_current(stub))
-    threads["stream_motor_current"].start()
-    threads["stream_arm_status"] = gui_datathread.DataThread("datathread for stream_arm_status", rpc_client.stream_arm_status(stub))
-    threads["stream_arm_status"].start()
+    threads["stream_hero_feedback"] = gui_datathread.DataThread("datathread for stream_hero_feedback", rpc_client.stream_hero_feedback(stub, rate=DEFAULT_RPC_RATE))
+    threads["stream_hero_feedback"].start()
     # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
     # For now, use a local source of fake data instead of the rpc server
     # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))
@@ -565,6 +473,10 @@ if __name__ == '__main__':
     if gamepad_encoder.gamepad_running:
         gamepad_encoder.stop()
         app.gamepad_thread.join()
+
+    # Set the state to idle on close
+    # TODO this should also happen (or maybe estop instead?) if any errors happen in the UI - something like a try/except/finally
+    rpc_client.change_drive_state(stub, jetsonrpc_pb2.DriveStateEnum.IDLE)
 
     for k in threads.keys():
         threads[k].stop()

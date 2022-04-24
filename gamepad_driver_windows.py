@@ -234,16 +234,22 @@ def get_gamepad_values():
     rx, ry = ry, rx  # the axes are flipped for this gamepad
     y = -y
 
-    dbin = 1
-    if button_states['y']:
-        dbin = 2
-    elif button_states['a']:
-        dbin = 0
-
     if abs(x) > abs(y):
         y = 0
     else:
         x = 0
+
+    deposit_bin_angle = 100
+    if button_states['y']:
+        deposit_bin_angle = 200
+    elif button_states['a']:
+        deposit_bin_angle = 0
+
+    conveyor = 100 # TODO the code for the conveyor belt is untested. I just copied the implementation from gamepad_driver_linux that I did test. 
+    if button_states['b']:
+        conveyor = 200
+    elif button_states['x']:
+        conveyor = 0
 
     args = (
         int(thresh(ry-rx, 0.1) * 100 + 100),
@@ -251,7 +257,8 @@ def get_gamepad_values():
         int(thresh(x, 0.1) * 100 + 100),
         int(thresh(y, 0.1) * 100 + 100),
         int((-(lt + 1) / 2 + (rt + 1) / 2) * 100 + 100),
-        dbin
+        deposit_bin_angle,
+        conveyor
     )
     return args
 

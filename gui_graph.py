@@ -3,46 +3,65 @@ Animated matplotlib graphs
 """
 
 import tkinter as tk
+from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
 import numpy as np
 from collections import deque
 import math
-import random
-import gui
 
 
 class LineGraph(tk.Frame):
    def __init__(self, parent, get_data_function):
       tk.Frame.__init__(self, parent)
 
+      # Initialize graph's main frame
+      self.main_frame = tk.Frame(parent)
+      self.main_frame.pack()
+
+      # Set up check boxes that toggle which motor currents are shown on the graph
+      self.checks = tk.Frame(self.main_frame)
+      self.check_vars = [tk.BooleanVar(value=True) for i in range(11)]
+      self.check_var_names = ["W1", "W2", "W3", "W4", "Conveyor", 
+         "ActL", "ActR", "LadderSpin", "LadderExtend", "DepoL", "DepoR"] # TODO assign correct labels to motors
+
+      for i in range(len(self.check_vars)):
+         c = ttk.Checkbutton(self.checks, text=self.check_var_names[i]+"  ", variable=self.check_vars[i])
+         c.grid(row=i//4, column=i%4)
+
+      # Set up the graph
       self.datalen = 100 # how many data points are displayed on the graph
-      self.datacolumns = 8 # number of series to graph (8 for 8 motor currents)
-      self.data = deque([[0]*self.datacolumns for i in range(self.datalen)], maxlen=self.datalen)
+      self.datacolumns = 11 # number of series to graph (11 motor currents)
+      self.data = deque([[0]*self.datacolumns for _ in range(self.datalen)], maxlen=self.datalen)
 
       self.fig = plt.Figure()#figsize=(6,5), dpi=100)
       self.ax = self.fig.add_subplot(111)
-      self.ax.set_title('X vs. Y')
-      self.ax.axis([0, self.datalen, 0, 20])
+      self.ax.set_title("Motor Currents")
+      self.ax.axis([0, self.datalen, 0, 255])
+      self.plot = [self.ax.plot([0]*self.datalen)[0] for _ in range(self.datacolumns)]
 
-      self.canvas = FigureCanvasTkAgg(self.fig, parent)
-      self.canvas.get_tk_widget().pack() #side=tk.LEFT, fill=tk.BOTH)
+      self.canvas = FigureCanvasTkAgg(self.fig, self.main_frame)
+      self.canvas.get_tk_widget().pack()
 
-      # self.plot = self.ax.plot(list(self.data))[0] # np.arange(0, self.datalen),
-      # code right below plots a horizontal axis line to fit the screen
-      self.plot = [self.ax.plot([0]*self.datalen)[0] for i in range(self.datacolumns)]
+      self.checks.pack(side=tk.TOP)
 
+      # Define graph animation
       def animate(i, data, plot, func):
-         new_val = func()
-         if(new_val is None):
+         new_val = func() # gets the latest list of motor currents
+         if new_val is None:
+            print("Warning: motor currents graph received invalid data")
             return
+         # Only show values in the graph if the motor's corresponding checkbox is checked
+         new_val = [d if var.get() == True else 0 for (d, var) in zip(new_val, self.check_vars)]
          data.append(new_val)
 
          for l, d in zip(plot, np.rot90(data)):
             l.set_ydata(d)
 
       self.anim = animation.FuncAnimation(self.fig, animate, fargs=(self.data, self.plot, get_data_function), interval=50, blit=False) # change graphing interval here
+
+
 
 class ArmGraph(tk.Frame):
    def __init__(self, parent, get_data_function=0):

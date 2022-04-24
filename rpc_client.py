@@ -1,12 +1,11 @@
 import grpc
 import cv2
 import numpy as np
+import typing
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
-import typing
-import struct
 
-STUB = jetsonrpc_pb2_grpc.JetsonRPCStub
+STUB = jetsonrpc_pb2_grpc.JetsonRPCStub # this is a type
 
 
 def stream_image(stub: STUB, rate=30):
@@ -21,25 +20,11 @@ def stream_imu(stub: STUB, rate=30):
     for item in response:
         yield item.values
 
+def stream_hero_feedback(stub: STUB, rate=30):
+    return stub.StreamHeroFeedback(jetsonrpc_pb2.Rate(rate=rate))
 
-def stream_motor_current(stub: STUB, rate=30):
-    response = stub.StreamMotorCurrent(jetsonrpc_pb2.Rate(rate=rate))
-    arr = np.zeros(1, 'uint64')
-    arr_uint8v = arr.view('uint8')
-    for item in response:
-        arr[0] = item.values
-        yield arr_uint8v.astype("float32")
-
-
-def stream_arm_status(stub: STUB, rate=30):
-    response = stub.StreamArmStatus(jetsonrpc_pb2.Rate(rate=rate))
-    for item in response:
-        yield (item.angle, item.translation)
-
-
-def send_motor_cmd(stub: STUB, gen):
-    return stub.StreamMotorCurrent(gen)
-
+def send_dd_command(stub: STUB, gen):
+    return stub.StreamDDCommand(gen)
 
 def emergency_stop(stub: STUB):
     stub.EmergencyStop(jetsonrpc_pb2.Void())

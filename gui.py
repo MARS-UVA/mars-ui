@@ -66,30 +66,33 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
 
     return frame
 
-def actionbutton_factory(parent, text, filename):
-    def saveText(filepath,txt_edit,newWindow):
+def actionbutton_factory(parent, text, filepath, command):
+    def saveText(filepath, txt_edit, newWindow):
         with open(filepath, "w") as output_file:
-            text = txt_edit.get(1.0, 'end')
-            output_file.write(text)
+            filetext = txt_edit.get(1.0, 'end')
+            output_file.write(filetext)
             newWindow.destroy()
-    def write_File(filepath):
-        #filepath = "action"+str(actionNum)+".json"
-        #filepath = file
+    def editText(filepath):
         newWindow = Toplevel()
-        newWindow.title("New Window")
+        newWindow.title("Editing command '%s'" % text)
         newWindow.rowconfigure(0, minsize=50, weight=1)
         newWindow.columnconfigure(1, minsize=50, weight=1)
         txt_edit = tk.Text(newWindow)
         txt_edit.grid(row=0, column=0, sticky="nsew")
         txt_edit.delete(1.0, tk.END)
         with open(filepath, "r") as input_file:
-            text = input_file.read()
-            txt_edit.insert(tk.END, text)
-        newButton = ttk.Button(newWindow, text = "Save", command = (lambda: saveText(filepath,txt_edit,newWindow)))
+            filetext = input_file.read()
+            txt_edit.insert(tk.END, filetext)
+        newButton = ttk.Button(newWindow, text="Save command '%s'" % text, command=(lambda: saveText(filepath, txt_edit, newWindow)))
         newButton.grid(row=1, column=0, sticky="nsew", padx=5)
+    def readText(filepath):
+        file = open(filepath, "r")
+        text = file.read()
+        file.close()
+        return text
     frame = tk.Frame(parent)
-    b = ttk.Button(frame, text=text, command=(lambda: print(text + " button clicked")), width=25).pack(side=tk.LEFT, pady=2, padx=2)
-    bedit = ttk.Button(frame, text="Edit", command = lambda: write_File(filename), width=10).pack(side=tk.LEFT, pady=2, padx=2)
+    b = ttk.Button(frame, text=text, command=lambda: command(readText(filepath)), width=25).pack(side=tk.LEFT, pady=2, padx=2)
+    bedit = ttk.Button(frame, text="Edit", command=lambda: editText(filepath), width=5).pack(side=tk.LEFT, pady=2, padx=2)
     return frame
 
 class MainApplication(tk.Frame):
@@ -318,21 +321,16 @@ class MainApplication(tk.Frame):
         actions_state_label = tk.Label(actions_panel, text="Current state: Idle", font='Pitch 20')
         actions_state_label.pack(side=tk.TOP, pady=10)
  
-
-        '''actionframe1 = tk.Frame(actions_panel)
+        def debug_print(text):
+            # This is used so that the button onclick funtion can read the file from within the factory function
+            # There is probably a better way to do this. Especially because this is super weird to understand
+            def action(t):
+                print("Action button got text=" + str(t))
+            return action(text)
+        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action_config/action1.json", command=debug_print)
         actionframe1.pack(side=tk.TOP, pady=10, padx=10)
-        actionframe2 = tk.Frame(actions_panel)
+        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=debug_print)
         actionframe2.pack(side=tk.TOP, pady=10, padx=10)
- 
-        actions_action_1 = ttk.Button(actionframe1, text="Action 1", command=(lambda: print("Action button 1 clicked")), width=25).pack(side=tk.LEFT, pady=2, padx=2)
-        action1_edit = ttk.Button(actionframe1, text="Edit", command = lambda: write_File(1), width=10).pack(side=tk.LEFT, pady=2, padx=2)
-        actions_action_2 = ttk.Button(actionframe2, text="Action 2", command=(lambda: print("Action button 2 clicked")), width=25).pack(side=tk.LEFT, pady=2, padx=2)
-        action2_edit = ttk.Button(actionframe2, text="Edit", command = lambda: write_File(2), width=10).pack(side=tk.LEFT, pady=2, padx=2)'''
-        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action1.json")
-        actionframe1.pack(side=tk.TOP, pady=10, padx=10)
-        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action2.json")
-        actionframe2.pack(side=tk.TOP, pady=10, padx=10)
-
 
 
         # -------------------------------------------------------------------------

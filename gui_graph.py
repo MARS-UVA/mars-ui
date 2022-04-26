@@ -50,7 +50,7 @@ class LineGraph(tk.Frame):
       def animate(i, data, plot, func):
          new_val = func() # gets the latest list of motor currents
          if new_val is None:
-            print("Warning: motor currents graph received invalid data")
+            # print("Warning: motor currents graph received invalid data")
             return
          # Only show values in the graph if the motor's corresponding checkbox is checked
          new_val = [d if var.get() == True else 0 for (d, var) in zip(new_val, self.check_vars)]

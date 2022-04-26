@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
+from tkinter import *
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +15,7 @@ import time
 from datetime import datetime
 import cv2
 import PIL.Image, PIL.ImageTk
+import json
 
 import grpc
 import rpc_client
@@ -64,6 +66,35 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
     c.pack(side=tk.LEFT, pady=2, padx=2)
 
     return frame
+
+def actionbutton_factory(parent, text, filepath, command):
+    def saveText(filepath, txt_edit, newWindow):
+        with open(filepath, "w") as output_file:
+            filetext = txt_edit.get(1.0, 'end')
+            output_file.write(filetext)
+            newWindow.destroy()
+    def editText(filepath):
+        newWindow = Toplevel()
+        newWindow.title("Editing command '%s'" % text)
+        newWindow.rowconfigure(0, minsize=50, weight=1)
+        newWindow.columnconfigure(1, minsize=50, weight=1)
+        txt_edit = tk.Text(newWindow)
+        txt_edit.grid(row=0, column=0, sticky="nsew")
+        txt_edit.delete(1.0, tk.END)
+        with open(filepath, "r") as input_file:
+            filetext = input_file.read()
+            txt_edit.insert(tk.END, filetext)
+        newButton = ttk.Button(newWindow, text="Save command '%s'" % text, command=(lambda: saveText(filepath, txt_edit, newWindow)))
+        newButton.grid(row=1, column=0, sticky="nsew", padx=5)
+    def readText(filepath):
+        file = open(filepath, "r")
+        text = file.read()
+        file.close()
+        return text
+    frame = tk.Frame(parent)
+    b = ttk.Button(frame, text=text, command=lambda: command(readText(filepath)), width=25).pack(side=tk.LEFT, pady=2, padx=2)
+    bedit = ttk.Button(frame, text="Edit", command=lambda: editText(filepath), width=5).pack(side=tk.LEFT, pady=2, padx=2)
+    return frame 
 
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -280,6 +311,8 @@ class MainApplication(tk.Frame):
         )
         actions_toggle_emergency_stop.pack(side=tk.TOP, pady=(10,50), padx=10)
 
+        # Action buttons (placeholders)
+
         actions_state_frame = tk.Frame(actions_panel, width=35, pady=10)
         actions_state_frame.pack()
         actions_state_idle = ttk.Button(actions_state_frame, text="State Idle", command=lambda: changeDriveState(jetsonrpc_pb2.DriveStateEnum.IDLE)).pack(side=tk.LEFT, padx=4)
@@ -288,10 +321,19 @@ class MainApplication(tk.Frame):
 
         actions_state_label = tk.Label(actions_panel, text="Current state: Idle", font='Pitch 20')
         actions_state_label.pack(side=tk.TOP, pady=10)
-
-        # Action button placeholders
-        actions_action_1 = ttk.Button(actions_panel, text="Action Button 1", command=(lambda: print("Action button 1 clicked")), width=35).pack(side=tk.TOP, pady=(35, 10), padx=10)
-        actions_action_2 = ttk.Button(actions_panel, text="Action Button 2", command=(lambda: print("Action button 2 clicked")), width=35).pack(side=tk.TOP, pady=10, padx=10)
+ 
+        def action_wrapper(text):
+            # This is used so that the button onclick funtion can read the file from within the factory function
+            # There is probably a better way to do this. Especially because this is super weird to understand
+            def action(t):
+                minified = json.dumps(json.loads(t), separators=(',', ':')) # this eliminates any extra spaces, tabs, and newlines
+                print("Sending start_action, text=" + str(minified))
+                rpc_client.start_action(stub, text=minified)
+            return action(text)
+        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action_config/action1.json", command=action_wrapper)
+        actionframe1.pack(side=tk.TOP, pady=10, padx=10)
+        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
+        actionframe2.pack(side=tk.TOP, pady=10, padx=10)
 
 
         # -------------------------------------------------------------------------

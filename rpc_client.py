@@ -2,6 +2,7 @@ import grpc
 import cv2
 import numpy as np
 import typing
+import json
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
@@ -31,6 +32,9 @@ def emergency_stop(stub: STUB):
 
 def change_drive_state(stub: STUB, state):
     stub.ChangeDriveState(jetsonrpc_pb2.DriveState(dse=state))
+
+def start_action(stub: STUB, text):
+    stub.StartAction(jetsonrpc_pb2.ActionDescription(text=text))
 
 
 if __name__ == '__main__':

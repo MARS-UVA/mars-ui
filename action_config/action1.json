@@ -1,5 +1,8 @@
-{"action1": {
-    "prop1": 7,
-}}
+{
+	"name": "dig",
+	"prop1": 10,
+	"prop2": "asdf"
+}
+
 
 

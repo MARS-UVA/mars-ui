@@ -73,6 +73,10 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
         print("fake_rpc_server changing drive state to {} ({})".format(state, state_name))
         return jetsonrpc_pb2.Void()
 
+    def StartAction(self, request, context):
+        print("fake_rpc_server starting action: {}".format(request.text))
+        return jetsonrpc_pb2.Void()
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

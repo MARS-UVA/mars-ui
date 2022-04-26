@@ -15,6 +15,7 @@ import time
 from datetime import datetime
 import cv2
 import PIL.Image, PIL.ImageTk
+import json
 
 import grpc
 import rpc_client
@@ -93,7 +94,7 @@ def actionbutton_factory(parent, text, filepath, command):
     frame = tk.Frame(parent)
     b = ttk.Button(frame, text=text, command=lambda: command(readText(filepath)), width=25).pack(side=tk.LEFT, pady=2, padx=2)
     bedit = ttk.Button(frame, text="Edit", command=lambda: editText(filepath), width=5).pack(side=tk.LEFT, pady=2, padx=2)
-    return frame
+    return frame 
 
 class MainApplication(tk.Frame):
     def __init__(self, master, *args, **kwargs):
@@ -321,15 +322,17 @@ class MainApplication(tk.Frame):
         actions_state_label = tk.Label(actions_panel, text="Current state: Idle", font='Pitch 20')
         actions_state_label.pack(side=tk.TOP, pady=10)
  
-        def debug_print(text):
+        def action_wrapper(text):
             # This is used so that the button onclick funtion can read the file from within the factory function
             # There is probably a better way to do this. Especially because this is super weird to understand
             def action(t):
-                print("Action button got text=" + str(t))
+                minified = json.dumps(json.loads(t), separators=(',', ':')) # this eliminates any extra spaces, tabs, and newlines
+                print("Sending start_action, text=" + str(minified))
+                rpc_client.start_action(stub, text=minified)
             return action(text)
-        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action_config/action1.json", command=debug_print)
+        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action_config/action1.json", command=action_wrapper)
         actionframe1.pack(side=tk.TOP, pady=10, padx=10)
-        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=debug_print)
+        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
         actionframe2.pack(side=tk.TOP, pady=10, padx=10)
 
 

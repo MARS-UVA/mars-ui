@@ -9,8 +9,6 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 STUB = jetsonrpc_pb2_grpc.JetsonRPCStub # this is a type
 
 
-
-def stream_hero_feedback(stub: STUB, rate=30):
 # def stream_image(stub: STUB, rate=30):
 #     response = stub.StreamImage(jetsonrpc_pb2.Rate(rate=rate))
 #     for item in response:
@@ -21,6 +19,8 @@ def stream_hero_feedback(stub: STUB, rate=30):
 #     response = stub.StreamIMU(jetsonrpc_pb2.Rate(rate=rate))
 #     for item in response:
 #         yield item.values
+
+def stream_hero_feedback(stub: STUB, rate=1000):
     return stub.StreamHeroFeedback(jetsonrpc_pb2.Rate(rate=rate))
 
 def send_dd_command(stub: STUB, gen):

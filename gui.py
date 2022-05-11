@@ -25,7 +25,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
-DEFAULT_RPC_RATE = 10
+DEFAULT_RPC_RATE = 1500 # update period, in ms
 
 HOST = "172.27.172.34"
 PORT = "50051"
@@ -60,7 +60,7 @@ def ratebutton_factory(parent, on_text, off_text, datathread, rpc_function):
         except ValueError:
             r.delete(0, tk.END)
             r.insert(0, str(DEFAULT_RPC_RATE))
-        # print("updating rate:", rate)
+        print("updating rate:", rate)
         datathread.updateGenerator(rpc_function(stub, rate=rate))
     c = ttk.Button(frame, text="✓", command=rate_command, width=2)
     c.pack(side=tk.LEFT, pady=2, padx=2)

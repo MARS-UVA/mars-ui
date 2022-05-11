@@ -39,21 +39,20 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
 
     # Sending data:
 
-    def StreamIMU(self, request, context):
-        while True:
-            time.sleep(1.0/request.rate)
-            # 6 values: 3 for linear acc, 3 for angular acc
-            # random floats between 0 and 10
-            randoms = [random.random() * 10 for i in range(6)]
-            yield jetsonrpc_pb2.IMUData(values=randoms)
-
-    def StreamImage(self, request, context):
-        cap = cv2.VideoCapture(0)
-        while(True):
-            time.sleep(1.0/request.rate)
-            ret, frame = cap.read()
-            ret, data = cv2.imencode(".jpg", frame)
-            yield jetsonrpc_pb2.Image(data=data.tobytes())
+    # def StreamIMU(self, request, context):
+    #     while True:
+    #         time.sleep(1.0/request.rate)
+    #         # 6 values: 3 for linear acc, 3 for angular acc
+    #         # random floats between 0 and 10
+    #         randoms = [random.random() * 10 for i in range(6)]
+    #         yield jetsonrpc_pb2.IMUData(values=randoms)
+    # def StreamImage(self, request, context):
+    #     cap = cv2.VideoCapture(0)
+    #     while(True):
+    #         time.sleep(1.0/request.rate)
+    #         ret, frame = cap.read()
+    #         ret, data = cv2.imencode(".jpg", frame)
+    #         yield jetsonrpc_pb2.Image(data=data.tobytes())
 
     def StreamHeroFeedback(self, request, context):
         while True:

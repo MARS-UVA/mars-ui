@@ -151,12 +151,12 @@ class MainApplication(tk.Frame):
         data_notebook = ttk.Notebook(data_panel)
 
         data_feedback_frame = tk.Frame(data_notebook, background="white")  # mc stands for motor current
-        data_cam_frame = tk.Frame(data_notebook, background="white")
-        data_IMU_frame = tk.Frame(data_notebook, background="white")
+        # data_cam_frame = tk.Frame(data_notebook, background="white")
+        # data_IMU_frame = tk.Frame(data_notebook, background="white")
 
         data_notebook.add(data_feedback_frame, text="Hero Feedback")
-        data_notebook.add(data_IMU_frame, text="IMU Data")
-        data_notebook.add(data_cam_frame, text="Camera")
+        # data_notebook.add(data_IMU_frame, text="IMU Data")
+        # data_notebook.add(data_cam_frame, text="Camera")
         data_notebook.pack(expand=1, fill='both')
 
         # Hero Feedback tab. All labels are defined as instance variables
@@ -182,25 +182,23 @@ class MainApplication(tk.Frame):
         # IMU Data tab. All labels are defined as instance variables
         # so they can be accessed by updateDataPanel().
 
-        self.data_IMU_title = tk.Label(
-            data_IMU_frame, text="IMU Data", font=("Pitch", 25))
-        # The .grid function is used to designate where this label is located
-        self.data_IMU_title.grid(
-            row=0, column=0, padx=10, pady=10, sticky=tk.W)
-
-        self.data_IMU_status = tk.Label(
-            data_IMU_frame,
-            text="STATUS: Collecting Data",
-            font='Pitch 20 bold')
-        self.data_IMU_status.grid(
-            row=1, column=0, padx=10, pady=3, sticky=tk.W)
-
-        self.data_IMU_body = tk.Label(
-            data_IMU_frame,
-            text="NA",
-            font=("Pitch", 20),
-            justify=tk.LEFT)
-        self.data_IMU_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        # self.data_IMU_title = tk.Label(
+        #     data_IMU_frame, text="IMU Data", font=("Pitch", 25))
+        # # The .grid function is used to designate where this label is located
+        # self.data_IMU_title.grid(
+        #     row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        # self.data_IMU_status = tk.Label(
+        #     data_IMU_frame,
+        #     text="STATUS: Collecting Data",
+        #     font='Pitch 20 bold')
+        # self.data_IMU_status.grid(
+        #     row=1, column=0, padx=10, pady=3, sticky=tk.W)
+        # self.data_IMU_body = tk.Label(
+        #     data_IMU_frame,
+        #     text="NA",
+        #     font=("Pitch", 20),
+        #     justify=tk.LEFT)
+        # self.data_IMU_body.grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
 
         # -------------------------------------------------------------------------
         # Actions Panel
@@ -228,29 +226,29 @@ class MainApplication(tk.Frame):
                 threads["stream_hero_feedback"].resumeCollection()
                 actions_toggle_hero_feedback['text'] = "Pause Feedback Collection"
 
-        def toggleCamDataThread():
-            if "stream_cam_data" not in threads:
-                print("stream_cam_data not in threads")
-                return
+        # def toggleCamDataThread():
+        #     if "stream_cam_data" not in threads:
+        #         print("stream_cam_data not in threads")
+        #         return
 
-            if threads["stream_cam_data"].isCollecting():
-                threads["stream_cam_data"].stopCollection()
-                actions_toggle_arm_data['text'] = "Resume Camera Stream"
-            else:
-                threads["stream_cam_data"].resumeCollection()
-                actions_toggle_arm_data['text'] = "Pause Camera Stream"
+        #     if threads["stream_cam_data"].isCollecting():
+        #         threads["stream_cam_data"].stopCollection()
+        #         actions_toggle_arm_data['text'] = "Resume Camera Stream"
+        #     else:
+        #         threads["stream_cam_data"].resumeCollection()
+        #         actions_toggle_arm_data['text'] = "Pause Camera Stream"
 
-        def toggleIMUDataThread():
-            if "stream_IMU_data" not in threads:
-                print("stream_IMU_data not in threads")
-                return
+        # def toggleIMUDataThread():
+        #     if "stream_IMU_data" not in threads:
+        #         print("stream_IMU_data not in threads")
+        #         return
 
-            if threads["stream_IMU_data"].isCollecting():
-                threads["stream_IMU_data"].stopCollection()
-                actions_toggle_IMU_data['text'] = "Resume IMU Data Collection"
-            else:
-                threads["stream_IMU_data"].resumeCollection()
-                actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
+        #     if threads["stream_IMU_data"].isCollecting():
+        #         threads["stream_IMU_data"].stopCollection()
+        #         actions_toggle_IMU_data['text'] = "Resume IMU Data Collection"
+        #     else:
+        #         threads["stream_IMU_data"].resumeCollection()
+        #         actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
 
         def gamepadControlOff():
             if not self.is_using_gamepad:
@@ -284,19 +282,19 @@ class MainApplication(tk.Frame):
         actions_toggle_hero_feedback = ratebutton_factory(actions_panel, "Pause Feedback Collection", "Resume Feedback Collection", threads["stream_hero_feedback"], rpc_client.stream_hero_feedback)
         actions_toggle_hero_feedback.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_IMU_data = ttk.Button(
-            actions_panel,
-            text="Pause IMU Data Collection",
-            command=toggleIMUDataThread,
-            width=35)
-        actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
+        # actions_toggle_IMU_data = ttk.Button(
+        #     actions_panel,
+        #     text="Pause IMU Data Collection",
+        #     command=toggleIMUDataThread,
+        #     width=35)
+        # actions_toggle_IMU_data.pack(side=tk.TOP, pady=10, padx=10)
 
-        actions_toggle_camera_stream = ttk.Button(
-            actions_panel,
-            text="Pause Camera Stream",
-            command=toggleCamDataThread,
-            width=35)
-        actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
+        # actions_toggle_camera_stream = ttk.Button(
+        #     actions_panel,
+        #     text="Pause Camera Stream",
+        #     command=toggleCamDataThread,
+        #     width=35)
+        # actions_toggle_camera_stream.pack(side=tk.TOP, pady=10, padx=10)
 
 
         # This ttk style makes a pretty red button for e-stop
@@ -330,10 +328,14 @@ class MainApplication(tk.Frame):
                 print("Sending start_action, text=" + str(minified))
                 rpc_client.start_action(stub, text=minified)
             return action(text)
-        actionframe1 = actionbutton_factory(actions_panel, "Action 1", "action_config/action1.json", command=action_wrapper)
-        actionframe1.pack(side=tk.TOP, pady=10, padx=10)
-        actionframe2 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
-        actionframe2.pack(side=tk.TOP, pady=10, padx=10)
+        actionframe1 = actionbutton_factory(actions_panel, "Raise Deposit Bin", "action_config/raise_bin.json", command=action_wrapper)
+        actionframe1.pack(side=tk.TOP, pady=(20,3), padx=10)
+        actionframe2 = actionbutton_factory(actions_panel, "Lower Deposit Bin", "action_config/lower_bin.json", command=action_wrapper)
+        actionframe2.pack(side=tk.TOP, pady=3, padx=10)
+        actionframe3 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
+        actionframe3.pack(side=tk.TOP, pady=(10,3), padx=10)
+        actionframe4 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
+        actionframe4.pack(side=tk.TOP, pady=3, padx=10)
 
 
         # -------------------------------------------------------------------------
@@ -375,17 +377,16 @@ class MainApplication(tk.Frame):
         )
 
 
-def cam_stream():
-    # TODO
-    cap = cv2.VideoCapture(0)
-    while (True):
-        ret, frame = cap.read()
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
+# def cam_stream():
+#     # TODO
+#     cap = cv2.VideoCapture(0)
+#     while (True):
+#         ret, frame = cap.read()
+#         cv2.imshow('frame', frame)
+#         if cv2.waitKey(1) & 0xFF == ord('q'):
+#             break
+#     cap.release()
+#     cv2.destroyAllWindows()
 
 
 def updateDataPanel():
@@ -397,15 +398,15 @@ def updateDataPanel():
         app.data_feedback_status['text'] = "STATUS: Paused"
         app.data_feedback_body['text'] = "Paused"
 
-    if threads["stream_IMU_data"].isCollecting():
-        IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
-        app.data_IMU_status['text'] = "STATUS: Collecting Data"
-        app.data_IMU_body['text'] = formatIMUData(IMU_data)
-    else:
-        app.data_IMU_status['text'] = "STATUS: Paused"
-        app.data_IMU_body['text'] = "Paused"
+    # if threads["stream_IMU_data"].isCollecting():
+    #     IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
+    #     app.data_IMU_status['text'] = "STATUS: Collecting Data"
+    #     app.data_IMU_body['text'] = formatIMUData(IMU_data)
+    # else:
+    #     app.data_IMU_status['text'] = "STATUS: Paused"
+    #     app.data_IMU_body['text'] = "Paused"
 
-    app.after(500, updateDataPanel)
+    app.after(100, updateDataPanel)
 
 
 def formatHeroFeedback(fb):
@@ -413,7 +414,7 @@ def formatHeroFeedback(fb):
         return "None"
     s = ""
     currents = list(fb.currents)
-    for i in range(0, 11):
+    for i in range(len(currents)):
         s += "Motor {}:{:>6} A\n".format(i, currents[i]) # TODO this right-align formatting doesn't work because the font isn't monospaced
 
     s += "\nArm Angle L:   {:.2f} °\n".format(fb.bucketLadderAngleL)
@@ -422,28 +423,28 @@ def formatHeroFeedback(fb):
     return s
 
 
-def formatIMUData(IMU_data):
-    lx, ly, lz, ax, ay, az = IMU_data # assigns these vars to list values
-    s = ""
-    s += "Lin Accel X:     "
-    s += "{:0<6.3f}".format(lx) + " Units\n\n"
-    s += "Lin Accel Y:     "
-    s += "{:0<6.3f}".format(ly) + " Units\n\n"
-    s += "Lin Accel Z:     "
-    s += "{:0<6.3f}".format(lz) + " Units\n\n"
-    s += "Ang Accel X:     "
-    s += "{:0<6.3f}".format(ax) + " Units\n\n"
-    s += "Ang Accel Y:     "
-    s += "{:0<6.3f}".format(ay) + " Units\n\n"
-    s += "Ang Accel Z:     "
-    s += "{:0<6.3f}".format(az) + " Units\n\n"
-    return s
+# def formatIMUData(IMU_data):
+#     lx, ly, lz, ax, ay, az = IMU_data # assigns these vars to list values
+#     s = ""
+#     s += "Lin Accel X:     "
+#     s += "{:0<6.3f}".format(lx) + " Units\n\n"
+#     s += "Lin Accel Y:     "
+#     s += "{:0<6.3f}".format(ly) + " Units\n\n"
+#     s += "Lin Accel Z:     "
+#     s += "{:0<6.3f}".format(lz) + " Units\n\n"
+#     s += "Ang Accel X:     "
+#     s += "{:0<6.3f}".format(ax) + " Units\n\n"
+#     s += "Ang Accel Y:     "
+#     s += "{:0<6.3f}".format(ay) + " Units\n\n"
+#     s += "Ang Accel Z:     "
+#     s += "{:0<6.3f}".format(az) + " Units\n\n"
+#     return s
 
 
-def fake_generator(columns, max=10):
-    while True:
-        yield np.array([random.randint(0, max) for i in range(columns)])
-        time.sleep(0.1)
+# def fake_generator(columns, max=10):
+#     while True:
+#         yield np.array([random.randint(0, max) for i in range(columns)])
+#         time.sleep(0.1)
 
 
 if __name__ == '__main__':
@@ -457,8 +458,8 @@ if __name__ == '__main__':
     # For now, use a local source of fake data instead of the rpc server
     # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))
     # threads["stream_IMU_data"].start()
-    threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
-    threads["stream_IMU_data"].start()
+    # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", fake_generator(6, max=10)) # 6 columns of fake data, 3 for linear acceleration, 3 for angular acceleration
+    # threads["stream_IMU_data"].start()
 
     root = tk.Tk()
     style = ttk.Style()
@@ -467,7 +468,7 @@ if __name__ == '__main__':
                     background="white", font=("Tahoma 24"))
 
     app = MainApplication(root)
-    app.after(500, updateDataPanel) # time before the first update
+    app.after(100, updateDataPanel) # time before the first update
     root.mainloop()
 
     # After UI is closed:

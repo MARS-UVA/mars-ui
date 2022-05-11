@@ -332,9 +332,9 @@ class MainApplication(tk.Frame):
         actionframe1.pack(side=tk.TOP, pady=(20,3), padx=10)
         actionframe2 = actionbutton_factory(actions_panel, "Lower Deposit Bin", "action_config/lower_bin.json", command=action_wrapper)
         actionframe2.pack(side=tk.TOP, pady=3, padx=10)
-        actionframe3 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
+        actionframe3 = actionbutton_factory(actions_panel, "Raise Bucket Ladder", "action_config/raise_ladder.json", command=action_wrapper)
         actionframe3.pack(side=tk.TOP, pady=(10,3), padx=10)
-        actionframe4 = actionbutton_factory(actions_panel, "Action 2", "action_config/action2.json", command=action_wrapper)
+        actionframe4 = actionbutton_factory(actions_panel, "Lower Bucket Ladder", "action_config/lower_ladder.json", command=action_wrapper)
         actionframe4.pack(side=tk.TOP, pady=3, padx=10)
 
 

@@ -1,6 +1,12 @@
 {
 	"name": "lower_ladder",
 	"update_delay": 0.1,
-	"lowered_angle": 10.0
+	"speed": 70,
+	"lowered_angle": 45.0
 }
+
+
+
+
+
 

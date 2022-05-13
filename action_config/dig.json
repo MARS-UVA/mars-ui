@@ -1,5 +1,6 @@
 {
 	"name": "dig",
 	"update_delay": 0.1,
-	"duration": 0
+	"speed": 70,
+	"duration": 10
 }

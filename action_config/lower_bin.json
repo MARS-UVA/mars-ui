@@ -1,5 +1,7 @@
 {
 	"name": "lower_bin",
 	"update_delay": 0.05,
-	"speed": 30
+	"speed": 30,
+	"lowered_angle": 40
 }
+

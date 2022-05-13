@@ -25,10 +25,12 @@ import matplotlib
 matplotlib.use("TkAgg")
 
 
-DEFAULT_RPC_RATE = 1500 # update period, in ms
+DEFAULT_RPC_RATE = 1000 # update period, in ms
 
 HOST = "172.27.172.34"
 PORT = "50051"
+# HOST = "localhost"
+# PORT = "50052"
 
 stub = None
 
@@ -336,6 +338,8 @@ class MainApplication(tk.Frame):
         actionframe3.pack(side=tk.TOP, pady=(10,3), padx=10)
         actionframe4 = actionbutton_factory(actions_panel, "Lower Bucket Ladder", "action_config/lower_ladder.json", command=action_wrapper)
         actionframe4.pack(side=tk.TOP, pady=3, padx=10)
+        actionframe4 = actionbutton_factory(actions_panel, "Dig", "action_config/dig.json", command=action_wrapper)
+        actionframe4.pack(side=tk.TOP, pady=(10,3), padx=10)
 
 
         # -------------------------------------------------------------------------

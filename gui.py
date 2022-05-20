@@ -1,6 +1,7 @@
 import gui_datathread
 import gui_graph
 import gamepad_encoder
+import network_config
 import threading
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -26,11 +27,6 @@ matplotlib.use("TkAgg")
 
 
 DEFAULT_RPC_RATE = 1000 # update period, in ms
-
-HOST = "172.27.172.34"
-PORT = "50051"
-# HOST = "localhost"
-# PORT = "50052"
 
 stub = None
 
@@ -452,7 +448,7 @@ def formatHeroFeedback(fb):
 
 
 if __name__ == '__main__':
-    channel = grpc.insecure_channel("{}:{}".format(HOST, PORT))
+    channel = grpc.insecure_channel("{}:{}".format(network_config.HOST, network_config.PORT))
     stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
 
     threads = {}

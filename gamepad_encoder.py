@@ -80,10 +80,9 @@ def stop():
 
 
 if __name__ == '__main__':
-    HOST = "localhost"
-    PORT = 50051
+    import network_config
 
-    with grpc.insecure_channel("{}:{}".format(HOST, PORT)) as channel:
+    with grpc.insecure_channel("{}:{}".format(network_config.HOST, network_config.PORT)) as channel:
         try:
             stub = jetsonrpc_pb2_grpc.JetsonRPCStub(channel)
             print("Changing to drive state DIRECT_DRIVE...")

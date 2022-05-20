@@ -14,8 +14,6 @@ import matplotlib.pyplot as plt
 import random
 import time
 from datetime import datetime
-import cv2
-import PIL.Image, PIL.ImageTk
 import json
 
 import grpc
@@ -375,18 +373,6 @@ class MainApplication(tk.Frame):
         graphs_2_ArmGraph = gui_graph.ArmGraph(
             graphs_2_frame,
         )
-
-
-# def cam_stream():
-#     # TODO
-#     cap = cv2.VideoCapture(0)
-#     while (True):
-#         ret, frame = cap.read()
-#         cv2.imshow('frame', frame)
-#         if cv2.waitKey(1) & 0xFF == ord('q'):
-#             break
-#     cap.release()
-#     cv2.destroyAllWindows()
 
 
 def updateDataPanel():

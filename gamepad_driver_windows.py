@@ -23,8 +23,8 @@ S = (..., 0)
 Triggers: ...
 
 
-These values may not make the most sense (eg the right stick N/S directions are swapped). If the 
-behavior of this file is changed, make sure to also update gamepad_driver_linux.py. 
+These values may not make the most sense (eg the right stick N/S directions are swapped). If the
+behavior of this file is changed, make sure to also update gamepad_driver_linux.py.
 """
 
 from math import floor, ceil
@@ -231,7 +231,7 @@ def get_gamepad_values():
 
     # print(x, y, rx, ry, button_states)
 
-    rx, ry = ry, rx  # the axes are flipped for this gamepad
+    rx, ry = -ry, -rx  # the axes are flipped for this gamepad
     y = -y
 
     if abs(x) > abs(y):
@@ -241,11 +241,11 @@ def get_gamepad_values():
 
     deposit_bin_angle = 100
     if button_states['y']:
-        deposit_bin_angle = 200
-    elif button_states['a']:
         deposit_bin_angle = 0
+    elif button_states['a']:
+        deposit_bin_angle = 200
 
-    conveyor = 100 # TODO the code for the conveyor belt is untested. I just copied the implementation from gamepad_driver_linux that I did test. 
+    conveyor = 100 # TODO the code for the conveyor belt is untested. I just copied the implementation from gamepad_driver_linux that I did test.
     if button_states['b']:
         conveyor = 200
     elif button_states['x']:

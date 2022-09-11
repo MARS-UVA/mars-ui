@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import random
 import time
-import cv2
+#import cv2
 import grpc
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2

@@ -3,7 +3,6 @@
 # PORT = "50051" # This port should never change
 
 
-# For running rpc-server in a virtual machine:
-# In virtualbox, you can configure ports that map between the host and the guest OS. I chose host port 50052 to exose guest port 50051 (the port ROS uses)
+# For running rpc-server on the same machine as the UI:
 HOST = "localhost"
-PORT = "50052"
+PORT = "50051"

@@ -76,6 +76,11 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
         print("fake_rpc_server starting action: {}".format(request.text))
         return jetsonrpc_pb2.Void()
 
+    def CreateMagic(self, request, context):
+        print("hi")
+        return jetsonrpc_pb2.Void()
+        # print(request.text)
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

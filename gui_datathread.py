@@ -13,6 +13,7 @@ class DataThread(threading.Thread):
         self.name = name
         self.gen = gen
         self.recent_data = None
+        self.message = None
 
         self.event = threading.Event()
         self.paused = False
@@ -20,9 +21,14 @@ class DataThread(threading.Thread):
 
     def run(self):
         while not self.stopped:
-            self.recent_data = next(self.gen)
+            try:
+                self.recent_data = next(self.gen)
+            except:
+                self.message = "Error: Server Disconnected"
+                break
             if self.paused:
                 self.event.wait()
+            return("")
             # time.sleep(1)
 
     def get_recent_data(self):
@@ -50,3 +56,6 @@ class DataThread(threading.Thread):
     def updateGenerator(self, newGen):
         # Used when the data transmission rate is changed
         self.gen = newGen
+    
+    def get_message(self):
+        return self.message

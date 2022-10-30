@@ -343,16 +343,6 @@ class MainApplication(tk.Frame):
         actionframe4 = actionbutton_factory(actions_panel, "Dig", "action_config/dig.json", command=action_wrapper)
         actionframe4.pack(side=tk.TOP, pady=(10,3), padx=10)
 
-        # def magic_wrap(text):
-        #     def action():
-        #         rpc_client.create_magic(stub, 5)
-        #     return action()
-        
-        #new button
-        # testB = ttk.Button(actions_panel, text="Fight", command= lambda:rpc_client.create_magic(stub))
-        # # testB = actionbutton_factory(actions_panel, "Fight", "action_config/dig.json", command=magic_wrap)
-        # testB.pack(side=tk.TOP, pady=(10,3), padx=10)
-
 
         # -------------------------------------------------------------------------
         # Graphs Panel
@@ -426,12 +416,6 @@ def formatHeroFeedback(fb):
     s += "Deposit bin:   Raised={}, Lowered={}".format(fb.depositBinRaised, fb.depositBinLowered)
     return s
 
-# def makeNewB():
-#     frame = tk.Frame(parent)
-#     text = "Fight"
-#     command = lambda: command(readText(filepath))
-#     testB = ttk.Button(frame, text=text, command=lambda: command(readText(filepath)), width=25)
-#     testB.pack(side=tk.LEFT, pady=2, padx=2)
 
 
 # def formatIMUData(IMU_data):
@@ -466,7 +450,7 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_hero_feedback"] = gui_datathread.DataThread("datathread for stream_hero_feedback", rpc_client.stream_hero_feedback(stub, rate=DEFAULT_RPC_RATE))
     threads["stream_hero_feedback"].start()
-    time.sleep(1)
+    time.sleep(0.5)
     print("message: ", threads["stream_hero_feedback"].get_message())
     message = threads["stream_hero_feedback"].get_message()
 

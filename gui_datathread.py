@@ -22,9 +22,12 @@ class DataThread(threading.Thread):
     def run(self):
         while not self.stopped:
             try:
+                print("1", self.name)
                 self.recent_data = next(self.gen)
+                print("2", self.name)
             except:
                 self.message = "Error: Server Disconnected"
+                print("error")
                 break
             if self.paused:
                 self.event.wait()

@@ -35,8 +35,6 @@ def change_drive_state(stub: STUB, state):
 def start_action(stub: STUB, text):
     stub.StartAction(jetsonrpc_pb2.ActionDescription(text=text))
 
-def create_magic(stub: STUB):
-    stub.CreateMagic(jetsonrpc_pb2.Magic())
     
 
 if __name__ == '__main__':

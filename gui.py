@@ -392,6 +392,8 @@ def updateDataPanel():
         app.data_feedback_status['text'] = "STATUS: Paused"
         app.data_feedback_body['text'] = "Paused"
 
+    message = threads["stream_hero_feedback"].get_message()
+    app.data_feedback_warning['text'] = message
     # if threads["stream_IMU_data"].isCollecting():
     #     IMU_data = threads["stream_IMU_data"].get_recent_data() #the recent data is the array of 6 valuess
     #     app.data_IMU_status['text'] = "STATUS: Collecting Data"
@@ -450,9 +452,10 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_hero_feedback"] = gui_datathread.DataThread("datathread for stream_hero_feedback", rpc_client.stream_hero_feedback(stub, rate=DEFAULT_RPC_RATE))
     threads["stream_hero_feedback"].start()
-    time.sleep(0.5)
-    print("message: ", threads["stream_hero_feedback"].get_message())
-    message = threads["stream_hero_feedback"].get_message()
+    # added error display functionality
+    # time.sleep(1)
+    # print("message: ", threads["stream_hero_feedback"].get_message())
+    # message = threads["stream_hero_feedback"].get_message()
 
     # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
     # For now, use a local source of fake data instead of the rpc server

@@ -21,11 +21,8 @@ class DataThread(threading.Thread):
 
     def run(self):
         while not self.stopped:
-            # self.recent_data = next(self.gen)
             try:
-            #     # print("1", self.name)
                 self.recent_data = next(self.gen)
-            #     # print("2", self.name)
             except:
                 self.message = "Error: Server Disconnected"
                 print("error: disconnected")

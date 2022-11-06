@@ -1,16 +1,13 @@
 import gui_datathread
 import gui_graph
+import gui_cameraview
+import threading
 import gamepad_encoder
 import network_config
-import threading
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
-from tkinter import *
 
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 import time
 from datetime import datetime
@@ -20,8 +17,6 @@ import grpc
 import rpc_client
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 
-import matplotlib
-matplotlib.use("TkAgg")
 
 
 DEFAULT_RPC_RATE = 1000 # update period, in ms
@@ -208,44 +203,6 @@ class MainApplication(tk.Frame):
             actions_panel, text="Actions", style="BW.TLabel")
         actions_title.pack(side="top", pady=(50, 25))
 
-        # Pauses or resumes motor current data collection. Updates the text
-        # on mc_toggle button.
-        def toggleHeroFeedbackThread():
-            if "stream_hero_feedback" not in threads:
-                print("stream_hero_feedback not in threads")
-                return
-
-            if threads["stream_hero_feedback"].isCollecting():
-                threads["stream_hero_feedback"].stopCollection()
-                actions_toggle_hero_feedback['text'] = "Resume Feedback Collection"
-            else:
-                threads["stream_hero_feedback"].resumeCollection()
-                actions_toggle_hero_feedback['text'] = "Pause Feedback Collection"
-
-        # def toggleCamDataThread():
-        #     if "stream_cam_data" not in threads:
-        #         print("stream_cam_data not in threads")
-        #         return
-
-        #     if threads["stream_cam_data"].isCollecting():
-        #         threads["stream_cam_data"].stopCollection()
-        #         actions_toggle_arm_data['text'] = "Resume Camera Stream"
-        #     else:
-        #         threads["stream_cam_data"].resumeCollection()
-        #         actions_toggle_arm_data['text'] = "Pause Camera Stream"
-
-        # def toggleIMUDataThread():
-        #     if "stream_IMU_data" not in threads:
-        #         print("stream_IMU_data not in threads")
-        #         return
-
-        #     if threads["stream_IMU_data"].isCollecting():
-        #         threads["stream_IMU_data"].stopCollection()
-        #         actions_toggle_IMU_data['text'] = "Resume IMU Data Collection"
-        #     else:
-        #         threads["stream_IMU_data"].resumeCollection()
-        #         actions_toggle_IMU_data['text'] = "Pause IMU Data Collection"
-
         def gamepadControlOff():
             if not self.is_using_gamepad:
                 return
@@ -276,7 +233,10 @@ class MainApplication(tk.Frame):
                 actions_state_label['text'] = "Current state: Idle"
 
         actions_toggle_hero_feedback = ratebutton_factory(actions_panel, "Pause Feedback Collection", "Resume Feedback Collection", threads["stream_hero_feedback"], rpc_client.stream_hero_feedback)
-        actions_toggle_hero_feedback.pack(side=tk.TOP, pady=10, padx=10)
+        actions_toggle_hero_feedback.pack(side=tk.TOP, pady=(20,3), padx=10)
+
+        actions_toggle_camera = ratebutton_factory(actions_panel, "Pause Camera Collection", "Resume Camera Collection", threads["stream_image"], rpc_client.stream_image)
+        actions_toggle_camera.pack(side=tk.TOP, pady=10, padx=10)
 
         # actions_toggle_IMU_data = ttk.Button(
         #     actions_panel,
@@ -349,12 +309,12 @@ class MainApplication(tk.Frame):
         # Notebook and Tabs
         graphs_notebook = ttk.Notebook(graph_panel)
         graphs_mc_frame = tk.Frame(graphs_notebook, background="white")
-        graphs_2_frame = tk.Frame(graphs_notebook, background="white")
-        graphs_3_frame = tk.Frame(graphs_notebook, background="white") # dummy tab
+        graphs_line_frame = tk.Frame(graphs_notebook, background="white")
+        graphs_image_frame = tk.Frame(graphs_notebook, background="white")
 
-        graphs_notebook.add(graphs_mc_frame, text="Graph 1")
-        graphs_notebook.add(graphs_2_frame, text="Graph 2")
-        graphs_notebook.add(graphs_3_frame, text="Graph 3")
+        graphs_notebook.add(graphs_mc_frame, text="Motor currents")
+        graphs_notebook.add(graphs_line_frame, text="X vx. Y")
+        graphs_notebook.add(graphs_image_frame, text="Camera view")
         graphs_notebook.pack(expand=1, fill='both')
 
         # Motor Currents graph. Note that mc stands for motor current.
@@ -363,16 +323,17 @@ class MainApplication(tk.Frame):
             if d is None:
                 return None
             return list(d.currents)
-
-        graphs_mc_lineGraph = gui_graph.LineGraph(
-            graphs_mc_frame,
-            get_data_function=mc_update_data
-        )
+        graphs_mc_lineGraph = gui_graph.LineGraph(graphs_mc_frame, get_data_function=mc_update_data)
 
         # Robotic Arm Length graph.
-        graphs_2_ArmGraph = gui_graph.ArmGraph(
-            graphs_2_frame,
-        )
+        graphs_2_ArmGraph = gui_graph.ArmGraph(graphs_line_frame)
+
+        def image_update_data():
+            d = threads["stream_image"].get_recent_data()
+            if d is None:
+                return None
+            return d.data
+        graphs_3_cameraView = gui_cameraview.CameraView(graphs_image_frame, get_data_function=image_update_data)
 
 
 def updateDataPanel():
@@ -440,6 +401,8 @@ if __name__ == '__main__':
     threads = {}
     threads["stream_hero_feedback"] = gui_datathread.DataThread("datathread for stream_hero_feedback", rpc_client.stream_hero_feedback(stub, rate=DEFAULT_RPC_RATE))
     threads["stream_hero_feedback"].start()
+    threads["stream_image"] = gui_datathread.DataThread("datathread for stream_image", rpc_client.stream_image(stub, rate=DEFAULT_RPC_RATE))
+    threads["stream_image"].start()
     # As of now, no IMU data is gathered so the IMU datathread hangs and prevents the program from closing
     # For now, use a local source of fake data instead of the rpc server
     # threads["stream_IMU_data"] = gui_datathread.DataThread("datathread for stream_IMU_data", rpc_client.stream_imu(stub))

@@ -9,11 +9,12 @@ from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
 STUB = jetsonrpc_pb2_grpc.JetsonRPCStub # this is a type
 
 
-# def stream_image(stub: STUB, rate=30):
-#     response = stub.StreamImage(jetsonrpc_pb2.Rate(rate=rate))
-#     for item in response:
-#         arr = np.frombuffer(item.data, "uint8")
-#         yield cv2.imdecode(arr, cv2.IMREAD_COLOR)
+def stream_image(stub: STUB, rate=30):
+    response = stub.StreamImage(jetsonrpc_pb2.Rate(rate=rate))
+    for item in response:
+        # arr = np.frombuffer(item.data, "uint8")
+        # yield cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        yield item
 
 # def stream_imu(stub: STUB, rate=30):
 #     response = stub.StreamIMU(jetsonrpc_pb2.Rate(rate=rate))

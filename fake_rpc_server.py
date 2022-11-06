@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import random
 import time
-#import cv2
+import cv2
 import grpc
 
 from protos import jetsonrpc_pb2_grpc, jetsonrpc_pb2
@@ -46,13 +46,26 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
     #         # random floats between 0 and 10
     #         randoms = [random.random() * 10 for i in range(6)]
     #         yield jetsonrpc_pb2.IMUData(values=randoms)
-    # def StreamImage(self, request, context):
-    #     cap = cv2.VideoCapture(0)
-    #     while(True):
-    #         time.sleep(1.0/request.rate)
-    #         ret, frame = cap.read()
-    #         ret, data = cv2.imencode(".jpg", frame)
-    #         yield jetsonrpc_pb2.Image(data=data.tobytes())
+
+    def StreamImage(self, request, context):
+        # To stream the webcam:
+        try:
+            cap = cv2.VideoCapture(0)
+            while True:
+                time.sleep(1.0/request.rate)
+                ret, frame = cap.read()
+                ret, data = cv2.imencode(".jpg", frame)
+                yield jetsonrpc_pb2.Image(data=data.tobytes())
+        except cv2.error:
+            print("Error: could not use webcam in StreamImage rpc")
+            return
+
+        # To stream static image from disk:
+        # img = cv2.imread("mars.jpg")
+        # ret, img_encoded = cv2.imencode(".jpg", img)
+        # while True:
+        #     time.sleep(1.0/request.rate)
+        #     yield jetsonrpc_pb2.Image(data=img_encoded.tobytes())
 
     def StreamHeroFeedback(self, request, context):
         while True:

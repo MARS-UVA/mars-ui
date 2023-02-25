@@ -53,9 +53,10 @@ class FakeRPCServer(jetsonrpc_pb2_grpc.JetsonRPC):
             cap = cv2.VideoCapture(0)
             while True:
                 time.sleep(1.0/request.rate)
-                ret, frame = cap.read()
-                ret, data = cv2.imencode(".jpg", frame)
-                yield jetsonrpc_pb2.Image(data=data.tobytes())
+                ret, img = cap.read()
+                img = cv2.resize(img, (700, 300))
+                ret, img = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), 10])
+                yield jetsonrpc_pb2.Image(data=img.tobytes())
         except cv2.error:
             print("Error: could not use webcam in StreamImage rpc")
             return

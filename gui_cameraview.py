@@ -19,16 +19,15 @@ class CameraView(tk.Frame):
 
 
     def update_image(self):
-        self.after(300, self.update_image)
+        self.after(100, self.update_image)
 
         img_raw = self.get_data_function()
         if img_raw is None:
             return
 
-        self.img = ImageTk.PhotoImage(Image.open(io.BytesIO(img_raw)))
+        self.img = ImageTk.PhotoImage(Image.open(io.BytesIO(img_raw))) # image must be stored in a persistent variable or else it will get garbage collected (I'm guessing)
         # self.img = Image.open("mars.jpg")
-        # self.img = ImageTk.PhotoImage(file="mars.jpg") # image must be stored in a persistent variable or else it will get garbage collected
-        
+        # self.img = ImageTk.PhotoImage(file="mars.jpg")
 
-        self.canvas.create_image(10, 10, anchor=tk.NW, image=self.img)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img)
         self.canvas.pack()

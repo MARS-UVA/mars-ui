@@ -166,8 +166,8 @@ class ArmGraph(tk.Frame):
          #  line2.set_ydata(np.ma.array(x2, mask=True))
          #  return line, line2
 
-         animation.FuncAnimation(self.fig, animate, np.arange(1, 1000),
-                           interval=30, blit=True)
+         # animation.FuncAnimation(self.fig, animate, np.arange(1, 1000),
+         #                   interval=30, blit=True)
          plt.show()
 
          # self.ax.plot([2, 4, 6, 8], [5, 4, 7, 9])

@@ -4,7 +4,7 @@ grpcio-tools==1.40.0
 inputs==0.5
 keyboard==0.13.5
 matplotlib==3.4.3
-numpy==1.21.2
+numpy==1.22.0
 protobuf==3.17.3
 pyparsing==2.4.7
 python-dateutil==2.8.2

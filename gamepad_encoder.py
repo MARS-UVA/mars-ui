@@ -8,7 +8,7 @@ import rpc_client
 from protos import jetsonrpc_pb2_grpc
 from protos import jetsonrpc_pb2
 from utils.protocol import encode_values
-# from keyboard_driver import keyboard_val_gen
+# from gamepad_driver_keyboard import keyboard_val_gen
 
 gamepad_running = False
 

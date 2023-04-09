@@ -17,7 +17,7 @@ cannot be stopped while it is blocking and there is no gentle way to stop it. So
 multiprocess.terminate() is used to forcefully end the blocking. 
 """
 
-
+import argparse
 import inputs
 import math
 import time
@@ -35,11 +35,18 @@ state_update_process = None
 sharedstate = multiprocessing.Array("i", [100, 100, 100, 100, 100, 100, 100])
 
 
-def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
+def thresh(a, l_th=0.1): # Copied from gamepad_driver_windows
     if abs(a) < l_th:
         return 0
-    elif abs(a) > u_th:
-        return -1 if a < 0 else 1
+    elif abs(a) > l_th:
+        if arguments.equation_type == 'linear':
+            return a # linear function as long as absolute value of input is big enough
+        elif arguments.equation_type == 'quadratic':
+            return pow(a, 2)
+        elif arguments.equation_type == 'exponential':
+            return pow(2, a)
+        else:
+            return 1
     return a
 
 def format_gamepad_values(state):
@@ -115,6 +122,11 @@ def get_gamepad_values():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--equation-type', choices=['constant', 'linear', 'quadratic', 'exponential'],
+                        default='linear',
+                        help='Sets the type of equation that maps joystick locations to motor currents')
+    arguments = parser.parse_args()
     start()
     try:
         while True:

@@ -27,6 +27,7 @@ These values may not make the most sense (eg the right stick N/S directions are 
 behavior of this file is changed, make sure to also update gamepad_driver_linux.py.
 """
 
+import argparse
 from math import floor, ceil
 import time
 import ctypes
@@ -182,11 +183,18 @@ info.dwFlags = JOY_RETURNBUTTONS | JOY_RETURNCENTERED | JOY_RETURNPOV | JOY_RETU
 p_info = ctypes.pointer(info)
 
 
-def thresh(a, l_th=0.1, u_th=1):
+def thresh(a, l_th=0.1): # Copied from gamepad_driver_windows
     if abs(a) < l_th:
         return 0
-    elif abs(a) > u_th:
-        return -1 if a < 0 else 1
+    elif abs(a) > l_th:
+        if arguments.equation_type == 'linear':
+            return a # linear function as long as absolute value of input is big enough
+        elif arguments.equation_type == 'quadratic':
+            return pow(a, 2)
+        elif arguments.equation_type == 'exponential':
+            return pow(2, a)
+        else:
+            return 1
     return a
 
 
@@ -264,6 +272,12 @@ def get_gamepad_values():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--equation-type', choices=['constant', 'linear', 'quadratic', 'exponential'],
+                        default='linear',
+                        help='Sets the type of equation that maps joystick locations to motor currents')
+    arguments = parser.parse_args()
+
     while True:
         if joyGetPosEx(0, p_info) != 0:
             print("Gamepad disconnected")

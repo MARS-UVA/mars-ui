@@ -23,6 +23,9 @@ import math
 import time
 import multiprocessing
 
+GAMEPAD_LOWER_LIMIT = -1.54
+GAMEPAD_UPPER_LIMIT = 1.54
+
 codes = [ # These are listed here just to initialize the state dictionary
     "ABS_X", "ABS_Y", # Left stick
     "ABS_RX", "ABS_RY", # Right stick
@@ -34,20 +37,35 @@ codes = [ # These are listed here just to initialize the state dictionary
 state_update_process = None
 sharedstate = multiprocessing.Array("i", [100, 100, 100, 100, 100, 100, 100])
 
+# maps the input value, a, from the original bounds to the target bounds
+def map_to_acceptable_range(a, og_lower_bound, og_upper_bound, target_lower_bound, target_upper_bound):
+    fraction_of_range = (a - og_lower_bound) / (og_upper_bound - og_lower_bound)
+    return fraction_of_range * (target_upper_bound - target_lower_bound) + target_lower_bound
 
-def thresh(a, l_th=0.1): # Copied from gamepad_driver_windows
-    if abs(a) < l_th:
-        return 0
-    elif abs(a) > l_th:
+
+def apply_eqn(a, l_th=0.1, lower=GAMEPAD_LOWER_LIMIT, upper=GAMEPAD_UPPER_LIMIT):
+    # for smoother driving: only return value if it is greater than a lower threshold
+    if abs(a) < l_th: 
+        return 100 # neutral value
+    else:
+        og_lower = lower
+        og_upper = upper
+        # we want the absolute value to increase according to the equation type,
+        # but the sign (negative or positive) should stay the same
+        multiplier = 1 if a >= 0 else -1
         if arguments.equation_type == 'linear':
-            return a # linear function as long as absolute value of input is big enough
+            raw_value = a  # y = x
         elif arguments.equation_type == 'quadratic':
-            return pow(a, 2)
+            raw_value = multiplier * pow(a, 2)  # y = x^2
+            og_lower = (-1 if lower < 0 else 1) * pow(lower, 2)
+            og_upper = (-1 if upper < 0 else 1) * pow(upper, 2)
         elif arguments.equation_type == 'exponential':
-            return pow(2, a)
+            raw_value = multiplier * (pow(2, abs(a)) - 1)  # y = 2^|x| - 1 so that we have (0, 0)
+            og_lower = (-1 if lower < 0 else 1) * (pow(2, abs(lower)) - 1)
+            og_upper = (-1 if upper < 0 else 1) * (pow(2, abs(upper)) - 1)
         else:
-            return 1
-    return a
+            raw_value = multiplier * 1
+        return map_to_acceptable_range(raw_value, og_lower, og_upper, 0, 200)  # the target rango is 0 - 200, with 100 being neutral
 
 def format_gamepad_values(state):
         x = (state["ABS_X"])/32768.0
@@ -75,11 +93,12 @@ def format_gamepad_values(state):
             conveyor = 0
 
         args = [
-            int(thresh(-ry+rx, 0.1) * 100 + 100), # left stick mixed
-            int(thresh(-ry-rx, 0.1) * 100 + 100), # left stick mixed
-            int(thresh(x, 0.1) * 100 + 100), # right stick x axis
-            int(thresh(y, 0.1) * 100 + 100), # right stick y axis
-            int((-(lt + 1) + (rt + 1)) * 100 + 100), # left trigger is backwards (0), right is forwards (200)
+            int(apply_eqn(-ry+rx, 0.1)), # left stick mixed
+            int(apply_eqn(-ry-rx, 0.1)), # left stick mixed
+            int(apply_eqn(x, 0.1)), # right stick x axis
+            int(apply_eqn(y, 0.1)), # right stick y axis
+            # left trigger is backwards (0), right is forwards (200)
+            int(apply_eqn((-(lt + 1) / 2 + (rt + 1) / 2), lower=-2, upper=2)),  # trigger values range from -2 to 2
             deposit_bin_angle,
             conveyor
         ]

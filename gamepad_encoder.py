@@ -69,7 +69,7 @@ def start(stub):
     print("gamepad_encoder starting...")
     global gamepad_running
     gamepad_running = True
-    response = stub.SendDDCommand(gamepad_val_gen())
+    response = stub.SendDDCommand(gamepad_val_gen().__iter__())
     # response = stub.SendDDCommand(dummy_val_gen()) # for sending fake data - will probably destroy robot if actually used
     print(response)
 

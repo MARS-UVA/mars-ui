@@ -4,5 +4,8 @@
 
 
 # For running rpc-server on the same machine as the UI:
-HOST = "localhost"
+#HOST = "localhost"
+#PORT = "50051"
+
+HOST = "191.168.0.103"
 PORT = "50051"

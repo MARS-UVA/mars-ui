@@ -241,15 +241,15 @@ def get_gamepad_values():
 
     deposit_bin_angle = 100
     if button_states['y']:
-        deposit_bin_angle = 0
+        deposit_bin_angle = 90
     elif button_states['a']:
-        deposit_bin_angle = 200
+        deposit_bin_angle = 110
 
     conveyor = 100 # TODO the code for the conveyor belt is untested. I just copied the implementation from gamepad_driver_linux that I did test.
     if button_states['b']:
-        conveyor = 200
+        conveyor = 110
     elif button_states['x']:
-        conveyor = 0
+        conveyor = 90
 
     args = (
         int(thresh(ry-rx, 0.1) * 100 + 100),

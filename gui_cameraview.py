@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
+from PIL import Image
 import io
 
 class CameraView(tk.Frame):

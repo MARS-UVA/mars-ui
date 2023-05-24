@@ -42,6 +42,14 @@ def thresh(a, l_th=0.1, u_th=1): # Copied from gamepad_driver_windows
         return -1 if a < 0 else 1
     return a
 
+def bucket_ladder_thresh(val):
+    if val < 0:
+        return 0
+    elif val > 200:
+        return 200
+    else:
+        return val
+
 def format_gamepad_values(state):
         x = (state["ABS_X"])/32768.0
         y = (state["ABS_Y"])/32768.0 * -1
@@ -63,16 +71,16 @@ def format_gamepad_values(state):
 
         conveyor = 100
         if state["BTN_EAST"] == 1:
-            conveyor = 200
+            conveyor = 110
         elif state["BTN_NORTH"] == 1: # See note above about BTN_WEST and BTN_NORTH being switched
-            conveyor = 0
+            conveyor = 90
 
         args = [
             int(thresh(-ry+rx, 0.1) * 100 + 100), # left stick mixed
             int(thresh(-ry-rx, 0.1) * 100 + 100), # left stick mixed
             int(thresh(x, 0.1) * 100 + 100), # right stick x axis
             int(thresh(y, 0.1) * 100 + 100), # right stick y axis
-            int((-(lt + 1) + (rt + 1)) * 100 + 100), # left trigger is backwards (0), right is forwards (200)
+            bucket_ladder_thresh(int((-(lt + 1) + (rt + 1)) * 100 + 100)), # left trigger is backwards (0), right is forwards (200)
             deposit_bin_angle,
             conveyor
         ]
